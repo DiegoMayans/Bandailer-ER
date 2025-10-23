@@ -11,10 +11,6 @@
 
 %{
 
-#include "FlexActions.h"
-#include "FlexExport.h"
-
-// Declaraciones de funciones de acción léxica
 extern CompilationStatus KeywordLexemeAction(TokenLabel label);
 extern CompilationStatus IdentifierLexemeAction();
 extern CompilationStatus TypeLexemeAction(TokenLabel label);
@@ -30,12 +26,12 @@ extern CompilationStatus UnknownLexemeAction();
 %}
 
 /**
- * Contextos (start conditions)
+ * Flex contexts (a.k.a. start conditions).
  */
 %x COMMENT_BLOCK
 
 /**
- * Patrones reutilizables
+ * Reusable patterns.
  */
 whitespace      [ \t\r\n]+
 digit           [0-9]
@@ -47,7 +43,9 @@ bool_literal    (true|false)
 
 %%
 
-/* === Palabras clave del lenguaje === */
+/**
+  * Reserved keywords
+  */
 "schema"                { return KeywordLexemeAction(SCHEMA); }
 "entity"                { return KeywordLexemeAction(ENTITY); }
 "relationship"          { return KeywordLexemeAction(RELATIONSHIP); }
@@ -65,7 +63,9 @@ bool_literal    (true|false)
 "otherwise"             { return KeywordLexemeAction(OTHERWISE); }
 "enum"                  { return KeywordLexemeAction(ENUM); }
 
-/* === Tipos básicos === */
+/**
+  * Data types
+  */
 "integer"               { return TypeLexemeAction(TYPE_INTEGER); }
 "decimal"               { return TypeLexemeAction(TYPE_DECIMAL); }
 "string"                { return TypeLexemeAction(TYPE_STRING); }
@@ -74,7 +74,9 @@ bool_literal    (true|false)
 "datetime"              { return TypeLexemeAction(TYPE_DATETIME); }
 "uuid"                  { return TypeLexemeAction(TYPE_UUID); }
 
-/* === Operadores === */
+/**
+  * Operators
+  */
 "="                     { return OperatorLexemeAction(OP_EQ); }
 "!="                    { return OperatorLexemeAction(OP_NEQ); }
 ">"                     { return OperatorLexemeAction(OP_GT); }
@@ -85,10 +87,14 @@ bool_literal    (true|false)
 "-"                     { return OperatorLexemeAction(OP_SUB); }
 "*"                     { return OperatorLexemeAction(OP_MUL); }
 "/"                     { return OperatorLexemeAction(OP_DIV); }
-"and"                   { return OperatorLexemeAction(OP_AND); }
-"or"                    { return OperatorLexemeAction(OP_OR); }
+"AND"                   { return OperatorLexemeAction(OP_AND); }
+"OR"                    { return OperatorLexemeAction(OP_OR); }
+"NOT"                   { return OperatorLexemeAction(OP_NOT); }
+"->"                    { return OperatorLexemeAction(OP_ARROW); }
 
-/* === Símbolos estructurales === */
+/**
+  * Symbols
+  */
 "{"                     { return SymbolLexemeAction(OPEN_BRACE); }
 "}"                     { return SymbolLexemeAction(CLOSE_BRACE); }
 "("                     { return SymbolLexemeAction(OPEN_PAREN); }
@@ -98,31 +104,33 @@ bool_literal    (true|false)
 ";"                     { return SymbolLexemeAction(SEMICOLON); }
 "."                     { return SymbolLexemeAction(DOT); }
 
-/* === Literales === */
+/**  
+  * Literals
+  */
 {integer}               { return LiteralLexemeAction(LIT_INTEGER); }
 {decimal}               { return LiteralLexemeAction(LIT_DECIMAL); }
 {string_literal}        { return LiteralLexemeAction(LIT_STRING); }
 {bool_literal}          { return LiteralLexemeAction(LIT_BOOL); }
 
-/* === Identificadores === */
+/**
+  * Identifiers
+  */
 {identifier}            { return IdentifierLexemeAction(); }
 
-/* === Comentarios === */
-// De bloque
+/**
+  * Comments
+  */
 "/*"                    { return EnterCommentLexemeAction(COMMENT_BLOCK); }
 <COMMENT_BLOCK>"*/"     { return LeaveCommentLexemeAction(); }
 <COMMENT_BLOCK>[^*]+    { return IgnoredLexemeAction(); }
 <COMMENT_BLOCK>.        { return IgnoredLexemeAction(); }
 
-// De línea
 "//".*                  { return IgnoredLexemeAction(); }
 
-/* === Espacios en blanco === */
 {whitespace}            { return IgnoredLexemeAction(); }
-
-/* === EOF y desconocidos === */
-<<EOF>>                 { return EOFLexemeAction(); }
 .                       { return UnknownLexemeAction(); }
+
+<<EOF>>                 { return EOFLexemeAction(); }
 
 %%
 
