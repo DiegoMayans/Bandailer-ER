@@ -50,20 +50,21 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %destructor { destroyFactor($$); } <factor>
 
 /** Terminals. */
-%token <integer> INTEGER
-%token <token> ADD
-%token <token> CLOSE_BRACE
-%token <token> CLOSE_COMMENT
-%token <token> CLOSE_PARENTHESIS
-%token <token> DIV
-%token <token> MUL
-%token <token> OPEN_BRACE
-%token <token> OPEN_COMMENT
-%token <token> OPEN_PARENTHESIS
-%token <token> SUB
+%token <token> SCHEMA ENTITY RELATIONSHIP PRIMARY UNIQUE DERIVED NOT NULL_TOK DEFAULT ASSERT TOTAL PARTIAL IF THEN OTHERWISE ENUM
 
-%token <token> IGNORED
-%token <token> UNKNOWN
+%token <token> TYPE_INTEGER TYPE_DECIMAL TYPE_STRING TYPE_BOOL TYPE_DATE TYPE_DATETIME TYPE_UUID
+
+%token <token> OP_EQ OP_NEQ OP_GT OP_LT OP_GTE OP_LTE
+%token <token> OP_ADD OP_SUB OP_MUL OP_DIV
+%token <token> OP_AND OP_OR OP_NOT OP_ARROW
+
+%token <token> OPEN_BRACE CLOSE_BRACE OPEN_PAREN CLOSE_PAREN
+%token <token> COLON COMMA SEMICOLON DOT
+
+%token <token> LIT_INTEGER LIT_DECIMAL LIT_STRING LIT_BOOL
+%token <token> IDENTIFIER
+
+%token <token> IGNORED UNKNOWN EOF
 
 /** Non-terminals. */
 %type <constant> constant
