@@ -60,7 +60,24 @@ void yyerror(const YYLTYPE * location, const char * message) {}
  *
  * @see https://www.gnu.org/software/bison/manual/html_node/Destructor-Decl.html
  */
+%destructor { destroySchema($$); } <schema>
+%destructor { destroyEntity($$); } <entity>
+%destructor { destroyRelationship($$); } <relationship>
+%destructor { destroyAttribute($$); } <attribute>
+%destructor { destroyAttributeList($$); } <attributeList>
+%destructor { destroyRelationshipList($$); } <relationshipList>
+%destructor { destroyParticipant($$); } <participant>
+%destructor { destroyParticipantList($$); } <participantList>
 %destructor { destroyExpression($$); } <expression>
+%destructor { destroyLiteral($$); } <literal>
+%destructor { destroyType($$); } <type>
+%destructor { destroyModifier($$); } <modifier>
+%destructor { destroyModifierList($$); } <modifierList>
+%destructor { destroyPrimaryKey($$); } <primaryKey>
+%destructor { destroyAssertion($$); } <assertion>
+%destructor { destroyParticipation($$); } <participation>
+%destructor { destroyIdentifierList($$); } <identifierList>
+
 %destructor { free($$); } <string>
 
 /** Terminals. */
@@ -75,10 +92,14 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %token <token> OPEN_BRACE CLOSE_BRACE OPEN_PAREN CLOSE_PAREN
 %token <token> COLON COMMA SEMICOLON DOT
 
-%token <token> LIT_INTEGER LIT_DECIMAL LIT_STRING LIT_BOOL
-%token <token> IDENTIFIER
+%token <integer> LIT_INTEGER 
+%token <decimal> LIT_DECIMAL 
+%token <string> LIT_STRING
+%token <boolean> LIT_BOOL
 
-%token <token> IGNORED UNKNOWN EOF
+%token <string> IDENTIFIER
+
+%token <token> IGNORED UNKNOWN END_OF_FILE
 
 /** Non-terminals. */
 %type <program> program
@@ -110,8 +131,6 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %left OP_MUL OP_DIV
 
 %%
-
-// IMPORTANT: To use λ in the following grammar, use the %empty symbol.
 
 program:
       schema_decl                             { $$ = SchemaProgramSemanticAction($1); }
@@ -154,11 +173,11 @@ modifier_list:
     ;
 
 modifier:
-      PRIMARY                                 { $$ = ModifierSemanticAction(PRIMARY); }
-    | UNIQUE                                  { $$ = ModifierSemanticAction(UNIQUE); }
-    | NOT NULL_TOK                            { $$ = ModifierSemanticAction(NOT_NULL); }
+      PRIMARY                                 { $$ = ModifierSemanticAction(MOD_PRIMARY); }
+    | UNIQUE                                  { $$ = ModifierSemanticAction(MOD_UNIQUE); }
+    | NOT NULL_TOK                            { $$ = ModifierSemanticAction(MOD_NOT_NULL); }
     | DEFAULT literal                         { $$ = ModifierDefaultSemanticAction($2); }
-    | DERIVED                                 { $$ = ModifierSemanticAction(DERIVED); }
+    | DERIVED                                 { $$ = ModifierSemanticAction(MOD_DERIVED); }
     ;
 
 primary_decl:
@@ -188,7 +207,7 @@ relationship_participant_list:
 
 relationship_participant:
       IDENTIFIER OP_MUL OP_ARROW IDENTIFIER participation_opt
-        { $$ = ParticipantSemanticAction($1, $4, $5); }
+        { $$ = ParticipantSemanticAction($1, $4, $5); } // TODO: Ahora mismo solo detecta *->
     ;
 
 participation_opt:

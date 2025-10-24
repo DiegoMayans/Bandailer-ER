@@ -58,9 +58,9 @@ bool_literal    (true|false)
 "assert"                { return KeywordLexemeAction(ASSERT); }
 "total"                 { return KeywordLexemeAction(TOTAL); }
 "partial"               { return KeywordLexemeAction(PARTIAL); }
-"if"                    { return KeywordLexemeAction(IF); }
-"then"                  { return KeywordLexemeAction(THEN); }
-"otherwise"             { return KeywordLexemeAction(OTHERWISE); }
+"IF"                    { return KeywordLexemeAction(IF); }
+"THEN"                  { return KeywordLexemeAction(THEN); }
+"OTHERWISE"             { return KeywordLexemeAction(OTHERWISE); }
 "enum"                  { return KeywordLexemeAction(ENUM); }
 
 /**

@@ -230,6 +230,7 @@ struct Assertion {
 };
 
 struct Participation {
+	// TODO: Ver si esto deberia ser un enum dedicado
 	TokenLabel type;  // TOTAL or PARTIAL
 };
 

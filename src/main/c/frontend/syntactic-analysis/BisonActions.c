@@ -33,13 +33,6 @@ static void _logSyntacticAnalyzerAction(const char * functionName) {
 	logDebugging(_logger, "%s", functionName);
 }
 
-/* Helper function to extract string from token */
-static char* _extractTokenString(TokenLabel token) {
-	// This would need to be implemented based on how tokens store their lexeme
-	// For now, returning a placeholder
-	return strdup("identifier");
-}
-
 /* PUBLIC FUNCTIONS - Program and Schema actions */
 
 Program * SchemaProgramSemanticAction(Schema * schema) {
@@ -56,7 +49,6 @@ Program * AppendSchemaProgramSemanticAction(Program * program, Schema * schema) 
 		return SchemaProgramSemanticAction(schema);
 	}
 	
-	// Find the last schema in the list and append
 	Schema * current = program->schema;
 	if (current == NULL) {
 		program->schema = schema;
@@ -69,10 +61,10 @@ Program * AppendSchemaProgramSemanticAction(Program * program, Schema * schema) 
 	return program;
 }
 
-Schema * SchemaSemanticAction(TokenLabel identifier, Schema * body) {
+Schema * SchemaSemanticAction(char *identifier, Schema * body) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Schema * schema = calloc(1, sizeof(Schema));
-	schema->name = _extractTokenString(identifier);
+	schema->name = strdup(identifier);
 	if (body != NULL) {
 		schema->entities = body->entities;
 		schema->relationships = body->relationships;
@@ -123,12 +115,12 @@ Schema * AppendRelationshipSchemaBodySemanticAction(Schema * schema, Relationshi
 
 /* Entity actions */
 
-Entity * EntitySemanticAction(TokenLabel name, TokenLabel parent, Entity * body) {
+Entity * EntitySemanticAction(char * name, char * parent, Entity * body) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Entity * entity = calloc(1, sizeof(Entity));
-	entity->name = _extractTokenString(name);
-	if (parent != 0) {
-		entity->parent = _extractTokenString(parent);
+	entity->name = strdup(name);
+	if (parent != NULL) {
+		entity->parent = strdup(parent);
 	}
 	if (body != NULL) {
 		entity->attributes = body->attributes;
@@ -192,10 +184,10 @@ Entity * AppendAssertionEntityBodySemanticAction(Entity * entity, Assertion * as
 
 /* Attribute actions */
 
-Attribute * AttributeSemanticAction(TokenLabel name, Type * type, ModifierList * modifiers) {
+Attribute * AttributeSemanticAction(char * name, Type * type, ModifierList * modifiers) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Attribute * attribute = calloc(1, sizeof(Attribute));
-	attribute->name = _extractTokenString(name);
+	attribute->name = strdup(name);
 	attribute->type = type;
 	attribute->modifiers = modifiers;
 	return attribute;
@@ -225,21 +217,10 @@ AttributeList * AppendAttributeListSemanticAction(AttributeList * list, Attribut
 
 /* Type actions */
 
-Type * TypeSemanticAction(TokenLabel typeToken) {
+Type * TypeSemanticAction(TypeKind typeToken) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Type * type = calloc(1, sizeof(Type));
-	
-	// Map token to type kind
-	switch (typeToken) {
-		case TYPE_INTEGER: type->kind = TYPE_INTEGER; break;
-		case TYPE_DECIMAL: type->kind = TYPE_DECIMAL; break;
-		case TYPE_STRING: type->kind = TYPE_STRING; break;
-		case TYPE_BOOL: type->kind = TYPE_BOOL; break;
-		case TYPE_DATE: type->kind = TYPE_DATE; break;
-		case TYPE_DATETIME: type->kind = TYPE_DATETIME; break;
-		case TYPE_UUID: type->kind = TYPE_UUID; break;
-		default: type->kind = TYPE_STRING; break;
-	}
+	type->kind = typeToken;
 	return type;
 }
 
@@ -275,17 +256,10 @@ ModifierList * AppendModifierSemanticAction(ModifierList * list, Modifier * modi
 	return list;
 }
 
-Modifier * ModifierSemanticAction(TokenLabel modifierType) {
+Modifier * ModifierSemanticAction(ModifierType modifierType) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Modifier * modifier = calloc(1, sizeof(Modifier));
-	
-	switch (modifierType) {
-		case PRIMARY: modifier->type = MOD_PRIMARY; break;
-		case UNIQUE: modifier->type = MOD_UNIQUE; break;
-		case NOT: modifier->type = MOD_NOT_NULL; break; // NOT NULL_TOK becomes MOD_NOT_NULL
-		case DERIVED: modifier->type = MOD_DERIVED; break;
-		default: modifier->type = MOD_PRIMARY; break;
-	}
+	modifier->type = modifierType;
 	return modifier;
 }
 
@@ -308,14 +282,14 @@ PrimaryKey * PrimaryKeySemanticAction(IdentifierList * attributes) {
 
 /* Identifier list actions */
 
-IdentifierList * IdentifierListSemanticAction(TokenLabel identifier) {
+IdentifierList * IdentifierListSemanticAction(char * identifier) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	IdentifierList * list = calloc(1, sizeof(IdentifierList));
-	list->identifier = _extractTokenString(identifier);
+	list->identifier = strdup(identifier);
 	return list;
 }
 
-IdentifierList * AppendIdentifierListSemanticAction(IdentifierList * list, TokenLabel identifier) {
+IdentifierList * AppendIdentifierListSemanticAction(IdentifierList * list, char * identifier) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	if (list == NULL) {
 		return IdentifierListSemanticAction(identifier);
@@ -326,7 +300,7 @@ IdentifierList * AppendIdentifierListSemanticAction(IdentifierList * list, Token
 		current = current->next;
 	}
 	current->next = calloc(1, sizeof(IdentifierList));
-	current->next->identifier = _extractTokenString(identifier);
+	current->next->identifier = strdup(identifier);
 	return list;
 }
 
@@ -341,10 +315,10 @@ Assertion * AssertionSemanticAction(Expression * condition) {
 
 /* Relationship actions */
 
-Relationship * RelationshipSemanticAction(TokenLabel name, ParticipantList * participants, Relationship * body) {
+Relationship * RelationshipSemanticAction(char * name, ParticipantList * participants, Relationship * body) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Relationship * relationship = calloc(1, sizeof(Relationship));
-	relationship->name = _extractTokenString(name);
+	relationship->name = strdup(name);
 	relationship->participants = participants;
 	if (body != NULL) {
 		relationship->attributes = body->attributes;
@@ -374,11 +348,11 @@ ParticipantList * AppendParticipantListSemanticAction(ParticipantList * list, Pa
 	return list;
 }
 
-Participant * ParticipantSemanticAction(TokenLabel fromEntity, TokenLabel toEntity, Participation * participation) {
+Participant * ParticipantSemanticAction(char * fromEntity, char * toEntity, Participation * participation) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Participant * participant = calloc(1, sizeof(Participant));
-	participant->fromEntity = _extractTokenString(fromEntity);
-	participant->toEntity = _extractTokenString(toEntity);
+	participant->fromEntity = strdup(fromEntity);
+	participant->toEntity = strdup(toEntity);
 	participant->participation = participation;
 	return participant;
 }
@@ -412,11 +386,11 @@ Expression * LiteralExpressionSemanticAction(Literal * literal) {
 	return expression;
 }
 
-Expression * IdentifierExpressionSemanticAction(TokenLabel identifier) {
+Expression * IdentifierExpressionSemanticAction(char * identifier) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Expression * expression = calloc(1, sizeof(Expression));
 	expression->type = IDENTIFIER_EXPR;
-	expression->identifier = _extractTokenString(identifier);
+	expression->identifier = strdup(identifier);
 	return expression;
 }
 
@@ -478,35 +452,34 @@ Expression * ParenthesizedExpressionSemanticAction(Expression * expression) {
 
 /* Literal actions */
 
-Literal * IntegerLiteralSemanticAction(TokenLabel token) {
+Literal * IntegerLiteralSemanticAction(int value) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Literal * literal = calloc(1, sizeof(Literal));
 	literal->type = INTEGER_LITERAL;
-	// This would need proper token value extraction
-	literal->integer = 0; // Placeholder
+	literal->integer = value;
 	return literal;
 }
 
-Literal * DecimalLiteralSemanticAction(TokenLabel token) {
+Literal * DecimalLiteralSemanticAction(double value) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Literal * literal = calloc(1, sizeof(Literal));
 	literal->type = DECIMAL_LITERAL;
-	literal->decimal = 0.0; // Placeholder
+	literal->decimal = value;
 	return literal;
 }
 
-Literal * StringLiteralSemanticAction(TokenLabel token) {
+Literal * StringLiteralSemanticAction(char * token) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Literal * literal = calloc(1, sizeof(Literal));
 	literal->type = STRING_LITERAL;
-	literal->string = _extractTokenString(token);
+	literal->string = strdup(token);
 	return literal;
 }
 
-Literal * BooleanLiteralSemanticAction(TokenLabel token) {
+Literal * BooleanLiteralSemanticAction(bool value) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Literal * literal = calloc(1, sizeof(Literal));
 	literal->type = BOOLEAN_LITERAL;
-	literal->boolean = false; // Placeholder
+	literal->boolean = value;
 	return literal;
 }
