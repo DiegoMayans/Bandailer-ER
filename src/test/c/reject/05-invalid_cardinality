@@ -1,0 +1,13 @@
+schema InvalidCardinality
+
+entity Employee {
+    eid : uuid primary
+    name : string not null
+}
+
+entity Department {
+    dept_id : uuid primary
+    name : string
+}
+
+relationship works_in(Employee X-> Department)

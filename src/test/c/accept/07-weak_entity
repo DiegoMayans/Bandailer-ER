@@ -1,0 +1,12 @@
+schema Building
+
+entity Building {
+    building_id : uuid primary
+    address : string not null
+}
+
+weak entity Apartment identifying_relationship(Building) {
+    apt_number : integer primary
+    floor : integer not null
+    rooms : integer
+}

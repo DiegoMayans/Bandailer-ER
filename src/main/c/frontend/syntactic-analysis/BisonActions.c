@@ -63,24 +63,23 @@ Program * AppendSchemaProgramSemanticAction(Program * program, Schema * schema) 
 
 Schema * SchemaSemanticAction(char *identifier, Schema * body) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Schema * schema = calloc(1, sizeof(Schema));
-	schema->name = strdup(identifier);
-	if (body != NULL) {
-		schema->entities = body->entities;
-		schema->relationships = body->relationships;
+	Schema * schema = body;
+	if (schema == NULL) {
+		schema = calloc(1, sizeof(Schema));
 	}
+	schema->name = identifier;  
 	return schema;
 }
 
 Schema * EmptySchemaBodySemanticAction() {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	return calloc(1, sizeof(Schema));
+	return NULL;
 }
 
 Schema * AppendEntitySchemaBodySemanticAction(Schema * schema, Entity * entity) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	if (schema == NULL) {
-		schema = EmptySchemaBodySemanticAction();
+		schema = calloc(1, sizeof(Schema));
 	}
 	
 	if (schema->entities == NULL) {
@@ -98,7 +97,7 @@ Schema * AppendEntitySchemaBodySemanticAction(Schema * schema, Entity * entity) 
 Schema * AppendRelationshipSchemaBodySemanticAction(Schema * schema, Relationship * relationship) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	if (schema == NULL) {
-		schema = EmptySchemaBodySemanticAction();
+		schema = calloc(1, sizeof(Schema));
 	}
 	
 	if (schema->relationships == NULL) {
@@ -117,28 +116,26 @@ Schema * AppendRelationshipSchemaBodySemanticAction(Schema * schema, Relationshi
 
 Entity * EntitySemanticAction(char * name, char * parent, Entity * body) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Entity * entity = calloc(1, sizeof(Entity));
-	entity->name = strdup(name);
-	if (parent != NULL) {
-		entity->parent = strdup(parent);
+	Entity * entity = body;
+	if (entity == NULL) {
+		entity = calloc(1, sizeof(Entity));
 	}
-	if (body != NULL) {
-		entity->attributes = body->attributes;
-		entity->primaryKey = body->primaryKey;
-		entity->assertions = body->assertions;
+	entity->name = name;
+	if (parent != NULL) {
+		entity->parent = parent;
 	}
 	return entity;
 }
 
 Entity * EmptyEntityBodySemanticAction() {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	return calloc(1, sizeof(Entity));
+	return NULL;
 }
 
 Entity * AppendAttributeEntityBodySemanticAction(Entity * entity, Attribute * attribute) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	if (entity == NULL) {
-		entity = EmptyEntityBodySemanticAction();
+		entity = calloc(1, sizeof(Entity));
 	}
 	
 	if (entity->attributes == NULL) {
@@ -158,7 +155,7 @@ Entity * AppendAttributeEntityBodySemanticAction(Entity * entity, Attribute * at
 Entity * SetPrimaryKeyEntityBodySemanticAction(Entity * entity, PrimaryKey * primaryKey) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	if (entity == NULL) {
-		entity = EmptyEntityBodySemanticAction();
+		entity = calloc(1, sizeof(Entity));
 	}
 	entity->primaryKey = primaryKey;
 	return entity;
@@ -167,7 +164,7 @@ Entity * SetPrimaryKeyEntityBodySemanticAction(Entity * entity, PrimaryKey * pri
 Entity * AppendAssertionEntityBodySemanticAction(Entity * entity, Assertion * assertion) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	if (entity == NULL) {
-		entity = EmptyEntityBodySemanticAction();
+		entity = calloc(1, sizeof(Entity));
 	}
 	
 	if (entity->assertions == NULL) {
@@ -187,7 +184,7 @@ Entity * AppendAssertionEntityBodySemanticAction(Entity * entity, Assertion * as
 Attribute * AttributeSemanticAction(char * name, Type * type, ModifierList * modifiers) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Attribute * attribute = calloc(1, sizeof(Attribute));
-	attribute->name = strdup(name);
+	attribute->name = name;
 	attribute->type = type;
 	attribute->modifiers = modifiers;
 	return attribute;
@@ -285,7 +282,7 @@ PrimaryKey * PrimaryKeySemanticAction(IdentifierList * attributes) {
 IdentifierList * IdentifierListSemanticAction(char * identifier) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	IdentifierList * list = calloc(1, sizeof(IdentifierList));
-	list->identifier = strdup(identifier);
+	list->identifier = identifier;
 	return list;
 }
 
@@ -300,7 +297,7 @@ IdentifierList * AppendIdentifierListSemanticAction(IdentifierList * list, char 
 		current = current->next;
 	}
 	current->next = calloc(1, sizeof(IdentifierList));
-	current->next->identifier = strdup(identifier);
+	current->next->identifier = identifier;
 	return list;
 }
 
@@ -317,12 +314,12 @@ Assertion * AssertionSemanticAction(Expression * condition) {
 
 Relationship * RelationshipSemanticAction(char * name, ParticipantList * participants, Relationship * body) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Relationship * relationship = calloc(1, sizeof(Relationship));
-	relationship->name = strdup(name);
-	relationship->participants = participants;
-	if (body != NULL) {
-		relationship->attributes = body->attributes;
+	Relationship * relationship = body;
+	if (relationship == NULL) {
+		relationship = calloc(1, sizeof(Relationship));
 	}
+	relationship->name = name;
+	relationship->participants = participants;
 	return relationship;
 }
 
@@ -351,8 +348,8 @@ ParticipantList * AppendParticipantListSemanticAction(ParticipantList * list, Pa
 Participant * ParticipantSemanticAction(char * fromEntity, char * toEntity, Participation * participation) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Participant * participant = calloc(1, sizeof(Participant));
-	participant->fromEntity = strdup(fromEntity);
-	participant->toEntity = strdup(toEntity);
+	participant->fromEntity = fromEntity;
+	participant->toEntity = toEntity;
 	participant->participation = participation;
 	return participant;
 }
@@ -366,7 +363,7 @@ Participation * ParticipationSemanticAction(TokenLabel participationType) {
 
 Relationship * EmptyRelationshipBodySemanticAction() {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	return calloc(1, sizeof(Relationship));
+	return NULL;
 }
 
 Relationship * RelationshipBodySemanticAction(AttributeList * attributes) {
@@ -390,7 +387,7 @@ Expression * IdentifierExpressionSemanticAction(char * identifier) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Expression * expression = calloc(1, sizeof(Expression));
 	expression->type = IDENTIFIER_EXPR;
-	expression->identifier = strdup(identifier);
+	expression->identifier = identifier;
 	return expression;
 }
 
@@ -472,7 +469,7 @@ Literal * StringLiteralSemanticAction(char * token) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Literal * literal = calloc(1, sizeof(Literal));
 	literal->type = STRING_LITERAL;
-	literal->string = strdup(token);
+	literal->string = token;
 	return literal;
 }
 

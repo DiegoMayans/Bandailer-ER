@@ -63,6 +63,9 @@ CompilationStatus KeywordLexemeAction(TokenLabel label) {
 CompilationStatus IdentifierLexemeAction() {
 	Token * token = createToken(_lexicalAnalyzer, IDENTIFIER);
 	_logTokenAction(__FUNCTION__, token);
+
+	token->semanticValue->string = strdup(token->lexeme);
+
 	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
 	destroyToken(token);
 	return status;

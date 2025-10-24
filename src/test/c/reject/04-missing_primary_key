@@ -1,0 +1,7 @@
+schema NoPrimaryKey
+
+entity Employee {
+    name : string not null
+    salary : decimal
+    department : string
+}

@@ -3,7 +3,6 @@
 #include "../../support/type/CompilationStatus.h"
 #include "../../support/type/FlexContext.h"
 #include "../../support/type/TokenLabel.h"
-#include "../../support/type/TokenDefinitions.h"
 #include "../syntactic-analysis/AbstractSyntaxTree.h"
 #include "../syntactic-analysis/BisonParser.h"
 
@@ -43,13 +42,11 @@ bool_literal    (true|false)
 
 %%
 
-/**
-  * Reserved keywords
-  */
 "schema"                { return KeywordLexemeAction(SCHEMA); }
 "entity"                { return KeywordLexemeAction(ENTITY); }
 "relationship"          { return KeywordLexemeAction(RELATIONSHIP); }
-"primary"               { return KeywordLexemeAction(PRIMARY); }
+"primary"               { return KeywordLexemeAction(PRIMARY_MOD); }
+"PRIMARY"               { return KeywordLexemeAction(PRIMARY_COMPOSITE); }
 "unique"                { return KeywordLexemeAction(UNIQUE); }
 "derived"               { return KeywordLexemeAction(DERIVED); }
 "not"                   { return KeywordLexemeAction(NOT); }
@@ -63,20 +60,14 @@ bool_literal    (true|false)
 "OTHERWISE"             { return KeywordLexemeAction(OTHERWISE); }
 "enum"                  { return KeywordLexemeAction(ENUM); }
 
-/**
-  * Data types
-  */
-"integer"               { return TypeLexemeAction(TYPE_INTEGER); }
-"decimal"               { return TypeLexemeAction(TYPE_DECIMAL); }
-"string"                { return TypeLexemeAction(TYPE_STRING); }
-"bool"                  { return TypeLexemeAction(TYPE_BOOL); }
-"date"                  { return TypeLexemeAction(TYPE_DATE); }
-"datetime"              { return TypeLexemeAction(TYPE_DATETIME); }
-"uuid"                  { return TypeLexemeAction(TYPE_UUID); }
+"integer"               { return TypeLexemeAction(TOK_INTEGER_TYPE); }
+"decimal"               { return TypeLexemeAction(TOK_DECIMAL_TYPE); }
+"string"                { return TypeLexemeAction(TOK_STRING_TYPE); }
+"bool"                  { return TypeLexemeAction(TOK_BOOL_TYPE); }
+"date"                  { return TypeLexemeAction(TOK_DATE_TYPE); }
+"datetime"              { return TypeLexemeAction(TOK_DATETIME_TYPE); }
+"uuid"                  { return TypeLexemeAction(TOK_UUID_TYPE); }
 
-/**
-  * Operators
-  */
 "="                     { return OperatorLexemeAction(OP_EQ); }
 "!="                    { return OperatorLexemeAction(OP_NEQ); }
 ">"                     { return OperatorLexemeAction(OP_GT); }
@@ -92,9 +83,6 @@ bool_literal    (true|false)
 "NOT"                   { return OperatorLexemeAction(OP_NOT); }
 "->"                    { return OperatorLexemeAction(OP_ARROW); }
 
-/**
-  * Symbols
-  */
 "{"                     { return SymbolLexemeAction(OPEN_BRACE); }
 "}"                     { return SymbolLexemeAction(CLOSE_BRACE); }
 "("                     { return SymbolLexemeAction(OPEN_PAREN); }
@@ -104,22 +92,13 @@ bool_literal    (true|false)
 ";"                     { return SymbolLexemeAction(SEMICOLON); }
 "."                     { return SymbolLexemeAction(DOT); }
 
-/**  
-  * Literals
-  */
 {integer}               { return LiteralLexemeAction(LIT_INTEGER); }
 {decimal}               { return LiteralLexemeAction(LIT_DECIMAL); }
 {string_literal}        { return LiteralLexemeAction(LIT_STRING); }
 {bool_literal}          { return LiteralLexemeAction(LIT_BOOL); }
 
-/**
-  * Identifiers
-  */
 {identifier}            { return IdentifierLexemeAction(); }
 
-/**
-  * Comments
-  */
 "/*"                    { return EnterCommentLexemeAction(COMMENT_BLOCK); }
 <COMMENT_BLOCK>"*/"     { return LeaveCommentLexemeAction(); }
 <COMMENT_BLOCK>[^*]+    { return IgnoredLexemeAction(); }

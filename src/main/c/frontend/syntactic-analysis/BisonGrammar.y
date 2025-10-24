@@ -65,7 +65,6 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %destructor { destroyRelationship($$); } <relationship>
 %destructor { destroyAttribute($$); } <attribute>
 %destructor { destroyAttributeList($$); } <attributeList>
-%destructor { destroyRelationshipList($$); } <relationshipList>
 %destructor { destroyParticipant($$); } <participant>
 %destructor { destroyParticipantList($$); } <participantList>
 %destructor { destroyExpression($$); } <expression>
@@ -81,9 +80,9 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %destructor { free($$); } <string>
 
 /** Terminals. */
-%token <token> SCHEMA ENTITY RELATIONSHIP PRIMARY UNIQUE DERIVED NOT NULL_TOK DEFAULT ASSERT TOTAL PARTIAL IF THEN OTHERWISE ENUM
+%token <token> SCHEMA ENTITY RELATIONSHIP PRIMARY_MOD PRIMARY_COMPOSITE UNIQUE DERIVED NOT NULL_TOK DEFAULT ASSERT TOTAL PARTIAL IF THEN OTHERWISE ENUM
 
-%token <token> TYPE_INTEGER TYPE_DECIMAL TYPE_STRING TYPE_BOOL TYPE_DATE TYPE_DATETIME TYPE_UUID
+%token <token> TOK_INTEGER_TYPE TOK_DECIMAL_TYPE TOK_STRING_TYPE TOK_BOOL_TYPE TOK_DATE_TYPE TOK_DATETIME_TYPE TOK_UUID_TYPE
 
 %token <token> OP_EQ OP_NEQ OP_GT OP_LT OP_GTE OP_LTE
 %token <token> OP_ADD OP_SUB OP_MUL OP_DIV
@@ -121,14 +120,15 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %type <identifierList> identifier_list
 
 
-/**
- * Precedence and associativity.
- *
- * @see https://en.cppreference.com/w/cpp/language/operator_precedence.html
- * @see https://www.gnu.org/software/bison/manual/html_node/Precedence.html
- */
+/* Operator precedence from lowest to highest */
+%left OP_OR
+%left OP_AND
+%nonassoc OP_EQ OP_NEQ OP_LT OP_GT OP_LTE OP_GTE
 %left OP_ADD OP_SUB
 %left OP_MUL OP_DIV
+%right OP_NOT
+%nonassoc IFX
+%nonassoc OTHERWISE
 
 %%
 
@@ -173,7 +173,7 @@ modifier_list:
     ;
 
 modifier:
-      PRIMARY                                 { $$ = ModifierSemanticAction(MOD_PRIMARY); }
+      PRIMARY_MOD                             { $$ = ModifierSemanticAction(MOD_PRIMARY); }
     | UNIQUE                                  { $$ = ModifierSemanticAction(MOD_UNIQUE); }
     | NOT NULL_TOK                            { $$ = ModifierSemanticAction(MOD_NOT_NULL); }
     | DEFAULT literal                         { $$ = ModifierDefaultSemanticAction($2); }
@@ -181,7 +181,7 @@ modifier:
     ;
 
 primary_decl:
-      PRIMARY OPEN_PAREN identifier_list CLOSE_PAREN
+      PRIMARY_COMPOSITE OPEN_PAREN identifier_list CLOSE_PAREN
         { $$ = PrimaryKeySemanticAction($3); }
     ;
 
@@ -227,13 +227,13 @@ attribute_list:
     ;
 
 type_spec:
-      TYPE_INTEGER                            { $$ = TypeSemanticAction(TYPE_INTEGER); }
-    | TYPE_DECIMAL                            { $$ = TypeSemanticAction(TYPE_DECIMAL); }
-    | TYPE_STRING                             { $$ = TypeSemanticAction(TYPE_STRING); }
-    | TYPE_BOOL                               { $$ = TypeSemanticAction(TYPE_BOOL); }
-    | TYPE_DATE                               { $$ = TypeSemanticAction(TYPE_DATE); }
-    | TYPE_DATETIME                           { $$ = TypeSemanticAction(TYPE_DATETIME); }
-    | TYPE_UUID                               { $$ = TypeSemanticAction(TYPE_UUID); }
+      TOK_INTEGER_TYPE                        { $$ = TypeSemanticAction(TYPE_INTEGER); }
+    | TOK_DECIMAL_TYPE                        { $$ = TypeSemanticAction(TYPE_DECIMAL); }
+    | TOK_STRING_TYPE                         { $$ = TypeSemanticAction(TYPE_STRING); }
+    | TOK_BOOL_TYPE                           { $$ = TypeSemanticAction(TYPE_BOOL); }
+    | TOK_DATE_TYPE                           { $$ = TypeSemanticAction(TYPE_DATE); }
+    | TOK_DATETIME_TYPE                       { $$ = TypeSemanticAction(TYPE_DATETIME); }
+    | TOK_UUID_TYPE                           { $$ = TypeSemanticAction(TYPE_UUID); }
     | ENUM OPEN_BRACE identifier_list CLOSE_BRACE
                                               { $$ = EnumTypeSemanticAction($3); }
     ;
@@ -254,7 +254,7 @@ expression:
     | expression OP_AND expression            { $$ = LogicalExpressionSemanticAction($1, $3, AND); }
     | expression OP_OR expression             { $$ = LogicalExpressionSemanticAction($1, $3, OR); }
     | OP_NOT expression                       { $$ = LogicalNotExpressionSemanticAction($2); }
-    | IF expression THEN expression OTHERWISE expression
+    | IF expression THEN expression OTHERWISE expression %prec IFX
                                               { $$ = ConditionalExpressionSemanticAction($2, $4, $6); }
     | OPEN_PAREN expression CLOSE_PAREN       { $$ = ParenthesizedExpressionSemanticAction($2); }
     ;

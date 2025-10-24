@@ -1,0 +1,8 @@
+schema ContactInfo
+
+entity Person {
+    person_id : uuid primary
+    name : string not null
+    phone_numbers : string[] 
+    emails : string[]
+}

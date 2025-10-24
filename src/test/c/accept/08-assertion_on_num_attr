@@ -1,0 +1,11 @@
+schema Store
+
+entity Product {
+    product_id : uuid primary
+    name : string not null
+    price : decimal not null
+    stock : integer not null
+    
+    assert price > 0
+    assert stock >= 0
+}

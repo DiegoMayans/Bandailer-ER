@@ -1,0 +1,13 @@
+schema UserProfile
+
+entity User {
+    user_id : uuid primary
+    username : string not null
+}
+
+entity Profile {
+    profile_id : uuid primary
+    bio : string
+}
+
+relationship has_profile(User -> Profile total)

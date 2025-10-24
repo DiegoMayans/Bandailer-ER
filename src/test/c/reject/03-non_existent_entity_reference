@@ -1,0 +1,8 @@
+schema BadReference
+
+entity Employee {
+    eid : uuid primary
+    name : string not null
+}
+
+relationship works_in(Employee -> Department)

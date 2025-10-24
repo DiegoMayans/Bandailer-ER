@@ -1,0 +1,6 @@
+schema BadSyntax
+
+entity Employee {
+    eid : uuid primary
+    name string not null
+    salary : decimal
