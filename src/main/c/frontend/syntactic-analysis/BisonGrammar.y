@@ -24,17 +24,32 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %locations
 
 %union {
-	/** Terminals. */
+    /* Terminals */
+    signed int integer;
+    double decimal;
+    char *string;
+    bool boolean;
+    TokenLabel token;
 
-	signed int integer;
-	TokenLabel token;
-
-	/** Non-terminals. */
-
-	Constant * constant;
-	Expression * expression;
-	Factor * factor;
-	Program * program;
+    /* Non-terminals */
+    Program *program;
+    Schema *schema;
+    Entity *entity;
+    Relationship *relationship;
+    Attribute *attribute;
+    AttributeList *attributeList;
+    RelationshipList *relationshipList;
+    Participant *participant;
+    ParticipantList *participantList;
+    Expression *expression;
+    Literal *literal;
+    Type *type;
+    Modifier *modifier;
+    ModifierList *modifierList;
+    PrimaryKey *primaryKey;
+    Assertion *assertion;
+		Participation *participation;
+		IdentifierList *identifierList;
 }
 
 /**
@@ -45,9 +60,8 @@ void yyerror(const YYLTYPE * location, const char * message) {}
  *
  * @see https://www.gnu.org/software/bison/manual/html_node/Destructor-Decl.html
  */
-%destructor { destroyConstant($$); } <constant>
 %destructor { destroyExpression($$); } <expression>
-%destructor { destroyFactor($$); } <factor>
+%destructor { free($$); } <string>
 
 /** Terminals. */
 %token <token> SCHEMA ENTITY RELATIONSHIP PRIMARY UNIQUE DERIVED NOT NULL_TOK DEFAULT ASSERT TOTAL PARTIAL IF THEN OTHERWISE ENUM
@@ -67,10 +81,24 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %token <token> IGNORED UNKNOWN EOF
 
 /** Non-terminals. */
-%type <constant> constant
-%type <expression> expression
-%type <factor> factor
 %type <program> program
+%type <schema> schema_decl schema_body
+%type <entity> entity_decl entity_body
+%type <relationship> relationship_decl relationship_body
+%type <attribute> attribute_decl
+%type <attributeList> attribute_list
+%type <type> type_spec
+%type <modifier> modifier
+%type <modifierList> modifier_list
+%type <primaryKey> primary_decl
+%type <assertion> assert_decl
+%type <participant> relationship_participant
+%type <participantList> relationship_participant_list
+%type <expression> expression
+%type <literal> literal
+%type <participation> participation_opt
+%type <identifierList> identifier_list
+
 
 /**
  * Precedence and associativity.
@@ -78,28 +106,145 @@ void yyerror(const YYLTYPE * location, const char * message) {}
  * @see https://en.cppreference.com/w/cpp/language/operator_precedence.html
  * @see https://www.gnu.org/software/bison/manual/html_node/Precedence.html
  */
-%left ADD SUB
-%left MUL DIV
+%left OP_ADD OP_SUB
+%left OP_MUL OP_DIV
 
 %%
 
 // IMPORTANT: To use λ in the following grammar, use the %empty symbol.
 
-program: expression											{ $$ = ExpressionProgramSemanticAction($1); }
-	;
+program:
+      schema_decl                             { $$ = SchemaProgramSemanticAction($1); }
+    | program schema_decl                     { $$ = AppendSchemaProgramSemanticAction($1, $2); }
+    ;
 
-expression: expression[left] ADD expression[right]			{ $$ = ArithmeticExpressionSemanticAction($left, $right, ADDITION); }
-	| expression[left] DIV expression[right]				{ $$ = ArithmeticExpressionSemanticAction($left, $right, DIVISION); }
-	| expression[left] MUL expression[right]				{ $$ = ArithmeticExpressionSemanticAction($left, $right, MULTIPLICATION); }
-	| expression[left] SUB expression[right]				{ $$ = ArithmeticExpressionSemanticAction($left, $right, SUBTRACTION); }
-	| factor												{ $$ = FactorExpressionSemanticAction($1); }
-	;
+schema_decl:
+      SCHEMA IDENTIFIER schema_body
+        { $$ = SchemaSemanticAction($2, $3); }
+    ;
 
-factor: OPEN_PARENTHESIS expression CLOSE_PARENTHESIS		{ $$ = ExpressionFactorSemanticAction($2); }
-	| constant												{ $$ = ConstantFactorSemanticAction($1); }
-	;
+schema_body:
+      %empty 			                            { $$ = EmptySchemaBodySemanticAction(); }
+    | schema_body entity_decl                { $$ = AppendEntitySchemaBodySemanticAction($1, $2); }
+    | schema_body relationship_decl           { $$ = AppendRelationshipSchemaBodySemanticAction($1, $2); }
+    ;
 
-constant: INTEGER											{ $$ = IntegerConstantSemanticAction($1); }
-	;
+entity_decl:
+      ENTITY IDENTIFIER OPEN_BRACE entity_body CLOSE_BRACE
+        { $$ = EntitySemanticAction($2, NULL, $4); }
+    | ENTITY IDENTIFIER COLON IDENTIFIER OPEN_BRACE entity_body CLOSE_BRACE
+        { $$ = EntitySemanticAction($2, $4, $6); } /* inheritance */
+    ;
+
+entity_body:
+      %empty							                    { $$ = EmptyEntityBodySemanticAction(); }
+    | entity_body attribute_decl              { $$ = AppendAttributeEntityBodySemanticAction($1, $2); }
+    | entity_body primary_decl                { $$ = SetPrimaryKeyEntityBodySemanticAction($1, $2); }
+    | entity_body assert_decl                 { $$ = AppendAssertionEntityBodySemanticAction($1, $2); }
+    ;
+
+attribute_decl:
+      IDENTIFIER COLON type_spec modifier_list
+        { $$ = AttributeSemanticAction($1, $3, $4); }
+    ;
+
+modifier_list:
+      %empty                     							{ $$ = EmptyModifierListSemanticAction(); }
+    | modifier_list modifier                  { $$ = AppendModifierSemanticAction($1, $2); }
+    ;
+
+modifier:
+      PRIMARY                                 { $$ = ModifierSemanticAction(PRIMARY); }
+    | UNIQUE                                  { $$ = ModifierSemanticAction(UNIQUE); }
+    | NOT NULL_TOK                            { $$ = ModifierSemanticAction(NOT_NULL); }
+    | DEFAULT literal                         { $$ = ModifierDefaultSemanticAction($2); }
+    | DERIVED                                 { $$ = ModifierSemanticAction(DERIVED); }
+    ;
+
+primary_decl:
+      PRIMARY OPEN_PAREN identifier_list CLOSE_PAREN
+        { $$ = PrimaryKeySemanticAction($3); }
+    ;
+
+identifier_list:
+      IDENTIFIER                              { $$ = IdentifierListSemanticAction($1); }
+    | identifier_list COMMA IDENTIFIER        { $$ = AppendIdentifierListSemanticAction($1, $3); }
+    ;
+
+assert_decl:
+      ASSERT expression                       { $$ = AssertionSemanticAction($2); }
+    ;
+
+relationship_decl:
+      RELATIONSHIP IDENTIFIER OPEN_PAREN relationship_participant_list CLOSE_PAREN relationship_body
+        { $$ = RelationshipSemanticAction($2, $4, $6); }
+    ;
+
+relationship_participant_list:
+      relationship_participant                { $$ = ParticipantListSemanticAction($1); }
+    | relationship_participant_list COMMA relationship_participant
+                                              { $$ = AppendParticipantListSemanticAction($1, $3); }
+    ;
+
+relationship_participant:
+      IDENTIFIER OP_MUL OP_ARROW IDENTIFIER participation_opt
+        { $$ = ParticipantSemanticAction($1, $4, $5); }
+    ;
+
+participation_opt:
+      %empty                                  { $$ = NULL; }
+    | TOTAL                                   { $$ = ParticipationSemanticAction(TOTAL); }
+    | PARTIAL                                 { $$ = ParticipationSemanticAction(PARTIAL); }
+    ;
+
+relationship_body:
+      %empty		                              { $$ = EmptyRelationshipBodySemanticAction(); }
+    | OPEN_BRACE attribute_list CLOSE_BRACE   { $$ = RelationshipBodySemanticAction($2); }
+    ;
+
+attribute_list:
+      attribute_decl                          { $$ = AttributeListSemanticAction($1); }
+    | attribute_list attribute_decl           { $$ = AppendAttributeListSemanticAction($1, $2); }
+    ;
+
+type_spec:
+      TYPE_INTEGER                            { $$ = TypeSemanticAction(TYPE_INTEGER); }
+    | TYPE_DECIMAL                            { $$ = TypeSemanticAction(TYPE_DECIMAL); }
+    | TYPE_STRING                             { $$ = TypeSemanticAction(TYPE_STRING); }
+    | TYPE_BOOL                               { $$ = TypeSemanticAction(TYPE_BOOL); }
+    | TYPE_DATE                               { $$ = TypeSemanticAction(TYPE_DATE); }
+    | TYPE_DATETIME                           { $$ = TypeSemanticAction(TYPE_DATETIME); }
+    | TYPE_UUID                               { $$ = TypeSemanticAction(TYPE_UUID); }
+    | ENUM OPEN_BRACE identifier_list CLOSE_BRACE
+                                              { $$ = EnumTypeSemanticAction($3); }
+    ;
+
+expression:
+      literal                                 { $$ = LiteralExpressionSemanticAction($1); }
+    | IDENTIFIER                              { $$ = IdentifierExpressionSemanticAction($1); }
+    | expression OP_ADD expression            { $$ = ArithmeticExpressionSemanticAction($1, $3, ADDITION); }
+    | expression OP_SUB expression            { $$ = ArithmeticExpressionSemanticAction($1, $3, SUBTRACTION); }
+    | expression OP_MUL expression            { $$ = ArithmeticExpressionSemanticAction($1, $3, MULTIPLICATION); }
+    | expression OP_DIV expression            { $$ = ArithmeticExpressionSemanticAction($1, $3, DIVISION); }
+    | expression OP_EQ expression             { $$ = RelationalExpressionSemanticAction($1, $3, EQUAL); }
+    | expression OP_NEQ expression            { $$ = RelationalExpressionSemanticAction($1, $3, NOT_EQUAL); }
+    | expression OP_GT expression             { $$ = RelationalExpressionSemanticAction($1, $3, GREATER); }
+    | expression OP_LT expression             { $$ = RelationalExpressionSemanticAction($1, $3, LESS); }
+    | expression OP_GTE expression            { $$ = RelationalExpressionSemanticAction($1, $3, GREATER_EQUAL); }
+    | expression OP_LTE expression            { $$ = RelationalExpressionSemanticAction($1, $3, LESS_EQUAL); }
+    | expression OP_AND expression            { $$ = LogicalExpressionSemanticAction($1, $3, AND); }
+    | expression OP_OR expression             { $$ = LogicalExpressionSemanticAction($1, $3, OR); }
+    | OP_NOT expression                       { $$ = LogicalNotExpressionSemanticAction($2); }
+    | IF expression THEN expression OTHERWISE expression
+                                              { $$ = ConditionalExpressionSemanticAction($2, $4, $6); }
+    | OPEN_PAREN expression CLOSE_PAREN       { $$ = ParenthesizedExpressionSemanticAction($2); }
+    ;
+
+literal:
+      LIT_INTEGER                             { $$ = IntegerLiteralSemanticAction($1); }
+    | LIT_DECIMAL                             { $$ = DecimalLiteralSemanticAction($1); }
+    | LIT_STRING                              { $$ = StringLiteralSemanticAction($1); }
+    | LIT_BOOL                                { $$ = BooleanLiteralSemanticAction($1); }
+    ;
 
 %%

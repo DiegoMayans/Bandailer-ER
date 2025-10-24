@@ -3,76 +3,261 @@
 
 #include "../../support/logging/Logger.h"
 #include "../../support/type/ModuleDestructor.h"
+#include "../../support/type/TokenLabel.h"
 #include <stdlib.h>
+#include <stdbool.h>
 
 /** Initialize module's internal state. */
 ModuleDestructor initializeAbstractSyntaxTreeModule();
 
 /**
- * This type definitions allows self-referencing types (e.g., an expression
- * that is made of another expressions, such as talking about you in 3rd
- * person, but without the madness).
+ * Forward declarations for self-referencing types
  */
-
 typedef enum ExpressionType ExpressionType;
-typedef enum FactorType FactorType;
+typedef enum LiteralType LiteralType;
+typedef enum TypeKind TypeKind;
+typedef enum ModifierType ModifierType;
+typedef enum ArithmeticOperator ArithmeticOperator;
+typedef enum RelationalOperator RelationalOperator;
+typedef enum LogicalOperator LogicalOperator;
 
-typedef struct Constant Constant;
-typedef struct Expression Expression;
-typedef struct Factor Factor;
 typedef struct Program Program;
+typedef struct Schema Schema;
+typedef struct Entity Entity;
+typedef struct Relationship Relationship;
+typedef struct Attribute Attribute;
+typedef struct AttributeList AttributeList;
+typedef struct RelationshipList RelationshipList;
+typedef struct Participant Participant;
+typedef struct ParticipantList ParticipantList;
+typedef struct Expression Expression;
+typedef struct Literal Literal;
+typedef struct Type Type;
+typedef struct Modifier Modifier;
+typedef struct ModifierList ModifierList;
+typedef struct PrimaryKey PrimaryKey;
+typedef struct Assertion Assertion;
+typedef struct Participation Participation;
+typedef struct IdentifierList IdentifierList;
 
 /**
- * Node types for the Abstract Syntax Tree (AST).
+ * Enumeration types
  */
-
 enum ExpressionType {
+	LITERAL_EXPR,
+	IDENTIFIER_EXPR,
+	ARITHMETIC_EXPR,
+	RELATIONAL_EXPR,
+	LOGICAL_EXPR,
+	LOGICAL_NOT_EXPR,
+	CONDITIONAL_EXPR,
+	PARENTHESIZED_EXPR
+};
+
+enum LiteralType {
+	INTEGER_LITERAL,
+	DECIMAL_LITERAL,
+	STRING_LITERAL,
+	BOOLEAN_LITERAL
+};
+
+enum TypeKind {
+	TYPE_INTEGER,
+	TYPE_DECIMAL,
+	TYPE_STRING,
+	TYPE_BOOL,
+	TYPE_DATE,
+	TYPE_DATETIME,
+	TYPE_UUID,
+	TYPE_ENUM
+};
+
+enum ModifierType {
+	MOD_PRIMARY,
+	MOD_UNIQUE,
+	MOD_NOT_NULL,
+	MOD_DEFAULT,
+	MOD_DERIVED
+};
+
+enum ArithmeticOperator {
 	ADDITION,
-	DIVISION,
-	FACTOR,
+	SUBTRACTION,
 	MULTIPLICATION,
-	SUBTRACTION
+	DIVISION
 };
 
-enum FactorType {
-	CONSTANT,
-	EXPRESSION
+enum RelationalOperator {
+	EQUAL,
+	NOT_EQUAL,
+	GREATER,
+	LESS,
+	GREATER_EQUAL,
+	LESS_EQUAL
 };
 
-struct Constant {
-	int value;
+enum LogicalOperator {
+	AND,
+	OR
 };
 
-struct Factor {
-	union {
-		Constant * constant;
-		Expression * expression;
-	};
-	FactorType type;
+/**
+ * AST Node structures
+ */
+struct Program {
+	Schema* schema;
+};
+
+struct Schema {
+	char* name;
+	Entity* entities;
+	Relationship* relationships;
+	Schema* next;
+};
+
+struct Entity {
+	char* name;
+	char* parent;  // For inheritance
+	AttributeList* attributes;
+	PrimaryKey* primaryKey;
+	Assertion* assertions;
+	Entity* next;
+};
+
+struct Relationship {
+	char* name;
+	ParticipantList* participants;
+	AttributeList* attributes;
+	Relationship* next;
+};
+
+struct Attribute {
+	char* name;
+	Type* type;
+	ModifierList* modifiers;
+	Attribute* next;
+};
+
+struct AttributeList {
+	Attribute* attribute;
+	AttributeList* next;
+};
+
+struct RelationshipList {
+	Relationship* relationship;
+	RelationshipList* next;
+};
+
+struct Participant {
+	char* fromEntity;
+	char* toEntity;
+	Participation* participation;
+	Participant* next;
+};
+
+struct ParticipantList {
+	Participant* participant;
+	ParticipantList* next;
 };
 
 struct Expression {
-	union {
-		Factor * factor;
-		struct {
-			Expression * leftExpression;
-			Expression * rightExpression;
-		};
-	};
 	ExpressionType type;
+	union {
+		Literal* literal;
+		char* identifier;
+		struct {
+			Expression* left;
+			Expression* right;
+			ArithmeticOperator arithmeticOp;
+		} arithmetic;
+		struct {
+			Expression* left;
+			Expression* right;
+			RelationalOperator relationalOp;
+		} relational;
+		struct {
+			Expression* left;
+			Expression* right;
+			LogicalOperator logicalOp;
+		} logical;
+		struct {
+			Expression* operand;
+		} logicalNot;
+		struct {
+			Expression* condition;
+			Expression* thenExpr;
+			Expression* elseExpr;
+		} conditional;
+		struct {
+			Expression* expression;
+		} parenthesized;
+	};
 };
 
-struct Program {
-	Expression * expression;
+struct Literal {
+	LiteralType type;
+	union {
+		int integer;
+		double decimal;
+		char* string;
+		bool boolean;
+	};
+};
+
+struct Type {
+	TypeKind kind;
+	IdentifierList* enumValues;  // For enum types
+};
+
+struct Modifier {
+	ModifierType type;
+	Literal* defaultValue;  // For default modifier
+	Modifier* next;
+};
+
+struct ModifierList {
+	Modifier* modifier;
+	ModifierList* next;
+};
+
+struct PrimaryKey {
+	IdentifierList* attributes;
+};
+
+struct Assertion {
+	Expression* condition;
+	Assertion* next;
+};
+
+struct Participation {
+	TokenLabel type;  // TOTAL or PARTIAL
+};
+
+struct IdentifierList {
+	char* identifier;
+	IdentifierList* next;
 };
 
 /**
- * Node recursive super-duper-trambolik-destructors.
+ * Node destructors
  */
-
-void destroyConstant(Constant * constant);
-void destroyExpression(Expression * expression);
-void destroyFactor(Factor * factor);
-void destroyProgram(Program * program);
+void destroyProgram(Program* program);
+void destroySchema(Schema* schema);
+void destroyEntity(Entity* entity);
+void destroyRelationship(Relationship* relationship);
+void destroyAttribute(Attribute* attribute);
+void destroyAttributeList(AttributeList* attributeList);
+void destroyRelationshipList(RelationshipList* relationshipList);
+void destroyParticipant(Participant* participant);
+void destroyParticipantList(ParticipantList* participantList);
+void destroyExpression(Expression* expression);
+void destroyLiteral(Literal* literal);
+void destroyType(Type* type);
+void destroyModifier(Modifier* modifier);
+void destroyModifierList(ModifierList* modifierList);
+void destroyPrimaryKey(PrimaryKey* primaryKey);
+void destroyAssertion(Assertion* assertion);
+void destroyParticipation(Participation* participation);
+void destroyIdentifierList(IdentifierList* identifierList);
 
 #endif

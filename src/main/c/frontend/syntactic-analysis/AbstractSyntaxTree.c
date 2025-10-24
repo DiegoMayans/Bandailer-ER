@@ -20,51 +20,205 @@ ModuleDestructor initializeAbstractSyntaxTreeModule() {
 
 /* PUBLIC FUNCTIONS */
 
-void destroyConstant(Constant * constant) {
+void destroyProgram(Program* program) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (constant != NULL) {
-		free(constant);
+	if (program != NULL) {
+		destroySchema(program->schema);
+		free(program);
 	}
 }
 
-void destroyExpression(Expression * expression) {
+void destroySchema(Schema* schema) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (schema != NULL) {
+		free(schema->name);
+		destroyEntity(schema->entities);
+		destroyRelationship(schema->relationships);
+		destroySchema(schema->next);
+		free(schema);
+	}
+}
+
+void destroyEntity(Entity* entity) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (entity != NULL) {
+		free(entity->name);
+		free(entity->parent);
+		destroyAttributeList(entity->attributes);
+		destroyPrimaryKey(entity->primaryKey);
+		destroyAssertion(entity->assertions);
+		destroyEntity(entity->next);
+		free(entity);
+	}
+}
+
+void destroyRelationship(Relationship* relationship) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (relationship != NULL) {
+		free(relationship->name);
+		destroyParticipantList(relationship->participants);
+		destroyAttributeList(relationship->attributes);
+		destroyRelationship(relationship->next);
+		free(relationship);
+	}
+}
+
+void destroyAttribute(Attribute* attribute) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (attribute != NULL) {
+		free(attribute->name);
+		destroyType(attribute->type);
+		destroyModifierList(attribute->modifiers);
+		destroyAttribute(attribute->next);
+		free(attribute);
+	}
+}
+
+void destroyAttributeList(AttributeList* attributeList) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (attributeList != NULL) {
+		destroyAttribute(attributeList->attribute);
+		destroyAttributeList(attributeList->next);
+		free(attributeList);
+	}
+}
+
+void destroyRelationshipList(RelationshipList* relationshipList) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (relationshipList != NULL) {
+		destroyRelationship(relationshipList->relationship);
+		destroyRelationshipList(relationshipList->next);
+		free(relationshipList);
+	}
+}
+
+void destroyParticipant(Participant* participant) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (participant != NULL) {
+		free(participant->fromEntity);
+		free(participant->toEntity);
+		destroyParticipation(participant->participation);
+		destroyParticipant(participant->next);
+		free(participant);
+	}
+}
+
+void destroyParticipantList(ParticipantList* participantList) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (participantList != NULL) {
+		destroyParticipant(participantList->participant);
+		destroyParticipantList(participantList->next);
+		free(participantList);
+	}
+}
+
+void destroyExpression(Expression* expression) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
 	if (expression != NULL) {
 		switch (expression->type) {
-			case ADDITION:
-			case DIVISION:
-			case MULTIPLICATION:
-			case SUBTRACTION:
-				destroyExpression(expression->leftExpression);
-				destroyExpression(expression->rightExpression);
+			case LITERAL_EXPR:
+				destroyLiteral(expression->literal);
 				break;
-			case FACTOR:
-				destroyFactor(expression->factor);
+			case IDENTIFIER_EXPR:
+				free(expression->identifier);
+				break;
+			case ARITHMETIC_EXPR:
+				destroyExpression(expression->arithmetic.left);
+				destroyExpression(expression->arithmetic.right);
+				break;
+			case RELATIONAL_EXPR:
+				destroyExpression(expression->relational.left);
+				destroyExpression(expression->relational.right);
+				break;
+			case LOGICAL_EXPR:
+				destroyExpression(expression->logical.left);
+				destroyExpression(expression->logical.right);
+				break;
+			case LOGICAL_NOT_EXPR:
+				destroyExpression(expression->logicalNot.operand);
+				break;
+			case CONDITIONAL_EXPR:
+				destroyExpression(expression->conditional.condition);
+				destroyExpression(expression->conditional.thenExpr);
+				destroyExpression(expression->conditional.elseExpr);
+				break;
+			case PARENTHESIZED_EXPR:
+				destroyExpression(expression->parenthesized.expression);
 				break;
 		}
 		free(expression);
 	}
 }
 
-void destroyFactor(Factor * factor) {
+void destroyLiteral(Literal* literal) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (factor != NULL) {
-		switch (factor->type) {
-			case CONSTANT:
-				destroyConstant(factor->constant);
-				break;
-			case EXPRESSION:
-				destroyExpression(factor->expression);
-				break;
+	if (literal != NULL) {
+		if (literal->type == STRING_LITERAL) {
+			free(literal->string);
 		}
-		free(factor);
+		free(literal);
 	}
 }
 
-void destroyProgram(Program * program) {
+void destroyType(Type* type) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (program != NULL) {
-		destroyExpression(program->expression);
-		free(program);
+	if (type != NULL) {
+		if (type->kind == TYPE_ENUM) {
+			destroyIdentifierList(type->enumValues);
+		}
+		free(type);
+	}
+}
+
+void destroyModifier(Modifier* modifier) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (modifier != NULL) {
+		if (modifier->type == MOD_DEFAULT) {
+			destroyLiteral(modifier->defaultValue);
+		}
+		destroyModifier(modifier->next);
+		free(modifier);
+	}
+}
+
+void destroyModifierList(ModifierList* modifierList) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (modifierList != NULL) {
+		destroyModifier(modifierList->modifier);
+		destroyModifierList(modifierList->next);
+		free(modifierList);
+	}
+}
+
+void destroyPrimaryKey(PrimaryKey* primaryKey) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (primaryKey != NULL) {
+		destroyIdentifierList(primaryKey->attributes);
+		free(primaryKey);
+	}
+}
+
+void destroyAssertion(Assertion* assertion) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (assertion != NULL) {
+		destroyExpression(assertion->condition);
+		destroyAssertion(assertion->next);
+		free(assertion);
+	}
+}
+
+void destroyParticipation(Participation* participation) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (participation != NULL) {
+		free(participation);
+	}
+}
+
+void destroyIdentifierList(IdentifierList* identifierList) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (identifierList != NULL) {
+		free(identifierList->identifier);
+		destroyIdentifierList(identifierList->next);
+		free(identifierList);
 	}
 }
