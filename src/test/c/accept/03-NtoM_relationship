@@ -10,7 +10,7 @@ entity Course {
     title : string not null
 }
 
-relationship enrolled_in(Student *-* Course) {
+relationship enrolled_in(Student many, Course many) {
     enrollment_date : date not null
     grade : decimal
 }

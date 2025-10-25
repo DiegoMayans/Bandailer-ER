@@ -10,4 +10,4 @@ entity Profile {
     bio : string
 }
 
-relationship has_profile(User -> Profile total)
+relationship has_profile(User one , Profile many total)

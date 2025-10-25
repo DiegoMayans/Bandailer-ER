@@ -1,9 +1,5 @@
-/**
- * This is a sample schema with an entity definition.
- */
 schema Company
 
-// This is an employee
 entity Employee {
     eid  : uuid primary
     name : string

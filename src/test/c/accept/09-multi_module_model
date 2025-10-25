@@ -1,15 +1,14 @@
-module CustomerModule
+schema Customer
 
 entity Customer {
     customer_id : uuid primary
     name : string not null
 }
 
-module OrderModule
+schema Order
 
 entity Order {
     order_id : uuid primary
     order_date : date not null
 }
 
-relationship places(CustomerModule.Customer -> OrderModule.Order)
