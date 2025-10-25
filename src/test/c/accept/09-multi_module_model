@@ -1,0 +1,15 @@
+module CustomerModule
+
+entity Customer {
+    customer_id : uuid primary
+    name : string not null
+}
+
+module OrderModule
+
+entity Order {
+    order_id : uuid primary
+    order_date : date not null
+}
+
+relationship places(CustomerModule.Customer -> OrderModule.Order)

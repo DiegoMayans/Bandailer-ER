@@ -1,1 +1,21 @@
-16 / 4
+schema Hospital
+
+entity Doctor {
+    doc_id : uuid primary
+    name : string not null
+}
+
+entity Patient {
+    patient_id : uuid primary
+    name : string not null
+}
+
+entity Treatment {
+    treatment_id : uuid primary
+    description : string not null
+}
+
+relationship administers(Doctor *-* Patient *-* Treatment) {
+    date : datetime not null
+    notes : string
+}

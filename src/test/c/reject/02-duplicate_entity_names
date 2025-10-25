@@ -1,1 +1,11 @@
-34l{234{2k34}++2{+´+}´´{ñ{-}}}
+schema Duplicate
+
+entity Employee {
+    eid : uuid primary
+    name : string not null
+}
+
+entity Employee {
+    emp_id : uuid primary
+    role : string
+}
