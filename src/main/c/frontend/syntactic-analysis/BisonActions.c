@@ -301,6 +301,22 @@ IdentifierList * AppendIdentifierListSemanticAction(IdentifierList * list, char 
 	return list;
 }
 
+char * ConcatenateIdentifiers(char * prefix, char * identifier) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	size_t prefixLen = strlen(prefix);
+	size_t identifierLen = strlen(identifier);
+	
+	char * fullIdentifier = calloc(prefixLen + 1 + identifierLen + 1, sizeof(char));
+	strcpy(fullIdentifier, prefix);
+	fullIdentifier[prefixLen] = ':';
+	strcpy(fullIdentifier + prefixLen + 1, identifier);
+
+	free(prefix);
+	free(identifier);
+
+	return fullIdentifier;
+}
+
 /* Assertion actions */
 
 Assertion * AssertionSemanticAction(Expression * condition) {

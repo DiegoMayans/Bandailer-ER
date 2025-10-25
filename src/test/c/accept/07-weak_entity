@@ -5,8 +5,9 @@ entity Building {
     address : string not null
 }
 
-weak entity Apartment identifying_relationship(Building) {
+weak entity Apartment {
     apt_number : integer primary
     floor : integer not null
     rooms : integer
+    PRIMARY (Building:building_id, apt_number)
 }

@@ -120,6 +120,7 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %type <literal> literal
 %type <participation> participation_opt
 %type <identifierList> identifier_list
+%type <string> qualified_identifier
 
 
 /* Operator precedence from lowest to highest */
@@ -192,8 +193,14 @@ primary_decl:
     ;
 
 identifier_list:
-      IDENTIFIER                              { $$ = IdentifierListSemanticAction($1); }
-    | identifier_list COMMA IDENTIFIER        { $$ = AppendIdentifierListSemanticAction($1, $3); }
+      qualified_identifier                    { $$ = IdentifierListSemanticAction($1); }
+    | identifier_list COMMA qualified_identifier        
+                                              { $$ = AppendIdentifierListSemanticAction($1, $3); }
+    ;
+
+qualified_identifier:
+      IDENTIFIER                              { $$ = $1; }
+    | IDENTIFIER COLON IDENTIFIER             { $$ = ConcatenateIdentifiers($1, $3); } 
     ;
 
 assert_decl:

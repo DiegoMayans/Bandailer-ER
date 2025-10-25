@@ -52,6 +52,7 @@ PrimaryKey * PrimaryKeySemanticAction(IdentifierList * attributes);
 /* Identifier list actions */
 IdentifierList * IdentifierListSemanticAction(char * identifier);
 IdentifierList * AppendIdentifierListSemanticAction(IdentifierList * list, char * identifier);
+char * ConcatenateIdentifiers(char * prefix, char * identifier);
 
 /* Assertion actions */
 Assertion * AssertionSemanticAction(Expression * condition);
