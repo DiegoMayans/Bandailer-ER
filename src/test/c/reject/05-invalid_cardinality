@@ -10,4 +10,4 @@ entity Department {
     name : string
 }
 
-relationship works_in(Employee 1:1 total, Department X:1)
+relationship works_in(Employee one, Department manyy total)
