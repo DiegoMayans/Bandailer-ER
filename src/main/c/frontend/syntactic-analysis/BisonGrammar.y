@@ -91,7 +91,7 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %token <token> OP_AND OP_OR OP_NOT
 
 %token <token> OPEN_BRACE CLOSE_BRACE OPEN_PAREN CLOSE_PAREN
-%token <token> COLON COMMA SEMICOLON DOT
+%token <token> COLON COMMA SEMICOLON DOT OPEN_BRACKET CLOSE_BRACKET
 
 %token <integer> LIT_INTEGER 
 %token <decimal> LIT_DECIMAL 
@@ -250,6 +250,13 @@ type_spec:
     | TOK_UUID_TYPE                           { $$ = TypeSemanticAction(TYPE_UUID); }
     | ENUM OPEN_BRACE identifier_list CLOSE_BRACE
                                               { $$ = EnumTypeSemanticAction($3); }
+    | TOK_INTEGER_TYPE OPEN_BRACKET CLOSE_BRACKET    { $$ = ArrayTypeSemanticAction(TYPE_INTEGER); }
+    | TOK_DECIMAL_TYPE OPEN_BRACKET CLOSE_BRACKET    { $$ = ArrayTypeSemanticAction(TYPE_DECIMAL); }
+    | TOK_STRING_TYPE OPEN_BRACKET CLOSE_BRACKET     { $$ = ArrayTypeSemanticAction(TYPE_STRING); }
+    | TOK_BOOL_TYPE OPEN_BRACKET CLOSE_BRACKET       { $$ = ArrayTypeSemanticAction(TYPE_BOOL); }
+    | TOK_DATE_TYPE OPEN_BRACKET CLOSE_BRACKET       { $$ = ArrayTypeSemanticAction(TYPE_DATE); }
+    | TOK_DATETIME_TYPE OPEN_BRACKET CLOSE_BRACKET   { $$ = ArrayTypeSemanticAction(TYPE_DATETIME); }
+    | TOK_UUID_TYPE OPEN_BRACKET CLOSE_BRACKET       { $$ = ArrayTypeSemanticAction(TYPE_UUID); }
     ;
 
 expression:

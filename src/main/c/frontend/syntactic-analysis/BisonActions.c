@@ -218,6 +218,15 @@ Type * TypeSemanticAction(TypeKind typeToken) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Type * type = calloc(1, sizeof(Type));
 	type->kind = typeToken;
+	type->isArray = false; 
+	return type;
+}
+
+Type * ArrayTypeSemanticAction(TypeKind typeToken) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	Type * type = calloc(1, sizeof(Type));
+	type->kind = typeToken;
+	type->isArray = true;
 	return type;
 }
 
@@ -225,6 +234,7 @@ Type * EnumTypeSemanticAction(IdentifierList * enumValues) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Type * type = calloc(1, sizeof(Type));
 	type->kind = TYPE_ENUM;
+	type->isArray = false; 
 	type->enumValues = enumValues;
 	return type;
 }
