@@ -93,6 +93,8 @@ bool_literal    (true|false)
 ","                     { return SymbolLexemeAction(COMMA); }
 ";"                     { return SymbolLexemeAction(SEMICOLON); }
 "."                     { return SymbolLexemeAction(DOT); }
+"["                     { return SymbolLexemeAction(OPEN_BRACKET); }
+"]"                     { return SymbolLexemeAction(CLOSE_BRACKET); }
 
 {integer}               { return LiteralLexemeAction(LIT_INTEGER); }
 {decimal}               { return LiteralLexemeAction(LIT_DECIMAL); }

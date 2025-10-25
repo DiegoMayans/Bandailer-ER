@@ -38,6 +38,7 @@ AttributeList * AppendAttributeListSemanticAction(AttributeList * list, Attribut
 
 /* Type actions */
 Type * TypeSemanticAction(TypeKind typeToken);
+Type * ArrayTypeSemanticAction(TypeKind typeToken);
 Type * EnumTypeSemanticAction(IdentifierList * enumValues);
 
 /* Modifier actions */
