@@ -55,6 +55,7 @@ bool_literal    (true|false)
 "assert"                { return KeywordLexemeAction(ASSERT); }
 "total"                 { return KeywordLexemeAction(TOTAL); }
 "partial"               { return KeywordLexemeAction(PARTIAL); }
+"weak"                  { return KeywordLexemeAction(WEAK); }
 "IF"                    { return KeywordLexemeAction(IF); }
 "THEN"                  { return KeywordLexemeAction(THEN); }
 "OTHERWISE"             { return KeywordLexemeAction(OTHERWISE); }

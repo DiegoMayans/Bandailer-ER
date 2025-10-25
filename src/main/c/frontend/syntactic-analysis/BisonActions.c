@@ -345,11 +345,12 @@ ParticipantList * AppendParticipantListSemanticAction(ParticipantList * list, Pa
 	return list;
 }
 
-Participant * ParticipantSemanticAction(char * fromEntity, char * toEntity, Participation * participation) {
+Participant * ParticipantSemanticAction(char * fromEntity, char * toEntity, Participation * participation, CardinalityType cardinality) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Participant * participant = calloc(1, sizeof(Participant));
 	participant->fromEntity = fromEntity;
 	participant->toEntity = toEntity;
+	participant->cardinality = cardinality;
 	participant->participation = participation;
 	return participant;
 }

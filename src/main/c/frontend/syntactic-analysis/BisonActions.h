@@ -60,7 +60,7 @@ Assertion * AssertionSemanticAction(Expression * condition);
 Relationship * RelationshipSemanticAction(char * name, ParticipantList * participants, Relationship * body);
 ParticipantList * ParticipantListSemanticAction(Participant * participant);
 ParticipantList * AppendParticipantListSemanticAction(ParticipantList * list, Participant * participant);
-Participant * ParticipantSemanticAction(char * fromEntity, char * toEntity, Participation * participation);
+Participant * ParticipantSemanticAction(char * fromEntity, char * toEntity, Participation * participation, CardinalityType cardinality);
 Participation * ParticipationSemanticAction(TokenLabel participationType);
 Relationship * EmptyRelationshipBodySemanticAction();
 Relationship * RelationshipBodySemanticAction(AttributeList * attributes);

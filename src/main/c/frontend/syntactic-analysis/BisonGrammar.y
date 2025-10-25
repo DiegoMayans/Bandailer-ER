@@ -80,7 +80,7 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %destructor { free($$); } <string>
 
 /** Terminals. */
-%token <token> SCHEMA ENTITY RELATIONSHIP PRIMARY_MOD PRIMARY_COMPOSITE UNIQUE DERIVED NOT NULL_TOK DEFAULT ASSERT TOTAL PARTIAL IF THEN OTHERWISE ENUM
+%token <token> SCHEMA ENTITY RELATIONSHIP PRIMARY_MOD PRIMARY_COMPOSITE UNIQUE DERIVED NOT NULL_TOK DEFAULT ASSERT TOTAL PARTIAL IF THEN OTHERWISE ENUM WEAK
 
 %token <token> TOK_INTEGER_TYPE TOK_DECIMAL_TYPE TOK_STRING_TYPE TOK_BOOL_TYPE TOK_DATE_TYPE TOK_DATETIME_TYPE TOK_UUID_TYPE
 
@@ -153,6 +153,10 @@ entity_decl:
         { $$ = EntitySemanticAction($2, NULL, $4); }
     | ENTITY IDENTIFIER COLON IDENTIFIER OPEN_BRACE entity_body CLOSE_BRACE
         { $$ = EntitySemanticAction($2, $4, $6); } /* inheritance */
+    | WEAK ENTITY IDENTIFIER OPEN_BRACE entity_body CLOSE_BRACE
+        { $$ = EntitySemanticAction($3, NULL, $5); $$->weak = true; }
+    | WEAK ENTITY IDENTIFIER COLON IDENTIFIER OPEN_BRACE entity_body CLOSE_BRACE
+        { $$ = EntitySemanticAction($3, $5, $7); $$->weak = true; } 
     ;
 
 entity_body:
@@ -206,8 +210,14 @@ relationship_participant_list:
     ;
 
 relationship_participant:
-      IDENTIFIER OP_MUL OP_ARROW IDENTIFIER participation_opt
-        { $$ = ParticipantSemanticAction($1, $4, $5); } // TODO: Ahora mismo solo detecta *->
+      IDENTIFIER OP_SUB IDENTIFIER participation_opt    
+        { $$ = ParticipantSemanticAction($1, $3, $4, ONE_TO_ONE); }
+    | IDENTIFIER OP_SUB OP_MUL IDENTIFIER participation_opt 
+        { $$ = ParticipantSemanticAction($1, $4, $5, ONE_TO_MANY); }
+    | IDENTIFIER OP_MUL OP_SUB OP_MUL IDENTIFIER participation_opt 
+        { $$ = ParticipantSemanticAction($1, $5, $6, MANY_TO_MANY); }
+    | IDENTIFIER OP_MUL OP_SUB IDENTIFIER participation_opt 
+        { $$ = ParticipantSemanticAction($1, $4, $5, MANY_TO_ONE); }
     ;
 
 participation_opt:

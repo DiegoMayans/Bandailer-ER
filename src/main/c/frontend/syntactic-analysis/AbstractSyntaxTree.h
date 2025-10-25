@@ -101,6 +101,14 @@ enum LogicalOperator {
 	OR
 };
 
+typedef enum CardinalityType {
+	ONE_TO_ONE,
+	ONE_TO_MANY,
+	MANY_TO_ONE,
+	MANY_TO_MANY
+} CardinalityType;
+
+
 /**
  * AST Node structures
  */
@@ -116,12 +124,13 @@ struct Schema {
 };
 
 struct Entity {
-	char* name;
-	char* parent;  // For inheritance
-	AttributeList* attributes;
-	PrimaryKey* primaryKey;
-	Assertion* assertions;
-	Entity* next;
+    char* name;
+    char* parent;  // For inheritance
+    bool weak;     
+    AttributeList* attributes;
+    PrimaryKey* primaryKey;
+    Assertion* assertions;
+    Entity* next;
 };
 
 struct Relationship {
@@ -151,6 +160,7 @@ struct RelationshipList {
 struct Participant {
 	char* fromEntity;
 	char* toEntity;
+	CardinalityType cardinality;
 	Participation* participation;
 	Participant* next;
 };
