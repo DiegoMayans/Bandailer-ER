@@ -158,8 +158,7 @@ struct RelationshipList {
 };
 
 struct Participant {
-	char* fromEntity;
-	char* toEntity;
+	char *entityName;
 	CardinalityType cardinality;
 	Participation* participation;
 	Participant* next;

@@ -84,6 +84,8 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 
 %token <token> TOK_INTEGER_TYPE TOK_DECIMAL_TYPE TOK_STRING_TYPE TOK_BOOL_TYPE TOK_DATE_TYPE TOK_DATETIME_TYPE TOK_UUID_TYPE
 
+%token <token> CARD_ONE_TO_ONE CARD_ONE_TO_MANY CARD_MANY_TO_ONE CARD_MANY_TO_MANY
+
 %token <token> OP_EQ OP_NEQ OP_GT OP_LT OP_GTE OP_LTE
 %token <token> OP_ADD OP_SUB OP_MUL OP_DIV
 %token <token> OP_AND OP_OR OP_NOT OP_ARROW
@@ -210,14 +212,14 @@ relationship_participant_list:
     ;
 
 relationship_participant:
-      IDENTIFIER OP_SUB IDENTIFIER participation_opt    
-        { $$ = ParticipantSemanticAction($1, $3, $4, ONE_TO_ONE); }
-    | IDENTIFIER OP_SUB OP_MUL IDENTIFIER participation_opt 
-        { $$ = ParticipantSemanticAction($1, $4, $5, ONE_TO_MANY); }
-    | IDENTIFIER OP_MUL OP_SUB OP_MUL IDENTIFIER participation_opt 
-        { $$ = ParticipantSemanticAction($1, $5, $6, MANY_TO_MANY); }
-    | IDENTIFIER OP_MUL OP_SUB IDENTIFIER participation_opt 
-        { $$ = ParticipantSemanticAction($1, $4, $5, MANY_TO_ONE); }
+      IDENTIFIER CARD_ONE_TO_ONE participation_opt    
+        { $$ = ParticipantSemanticAction($1, $3, ONE_TO_ONE); }
+    | IDENTIFIER CARD_ONE_TO_MANY participation_opt 
+        { $$ = ParticipantSemanticAction($1, $3, ONE_TO_MANY); }
+    | IDENTIFIER CARD_MANY_TO_ONE participation_opt 
+        { $$ = ParticipantSemanticAction($1, $3, MANY_TO_ONE); }
+    | IDENTIFIER CARD_MANY_TO_MANY participation_opt 
+        { $$ = ParticipantSemanticAction($1, $3, MANY_TO_MANY); }
     ;
 
 participation_opt:

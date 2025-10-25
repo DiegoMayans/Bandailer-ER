@@ -95,8 +95,7 @@ void destroyRelationshipList(RelationshipList* relationshipList) {
 void destroyParticipant(Participant* participant) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
 	if (participant != NULL) {
-		free(participant->fromEntity);
-		free(participant->toEntity);
+		free(participant->entityName);
 		destroyParticipation(participant->participation);
 		destroyParticipant(participant->next);
 		free(participant);

@@ -82,7 +82,10 @@ bool_literal    (true|false)
 "AND"                   { return OperatorLexemeAction(OP_AND); }
 "OR"                    { return OperatorLexemeAction(OP_OR); }
 "NOT"                   { return OperatorLexemeAction(OP_NOT); }
-"->"                    { return OperatorLexemeAction(OP_ARROW); }
+"1:1"                   { return SymbolLexemeAction(CARD_ONE_TO_ONE); }
+"1:N"                   { return SymbolLexemeAction(CARD_ONE_TO_MANY); }
+"N:1"                   { return SymbolLexemeAction(CARD_MANY_TO_ONE); }
+"N:M"                   { return SymbolLexemeAction(CARD_MANY_TO_MANY); }
 
 "{"                     { return SymbolLexemeAction(OPEN_BRACE); }
 "}"                     { return SymbolLexemeAction(CLOSE_BRACE); }
