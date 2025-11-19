@@ -1,5 +1,6 @@
 // #include "backend/code-generation/Generator.h"
-// #include "backend/domain-specific/Calculator.h"
+#include "backend/domain-specific/SemanticAnalyzer.h"
+#include "backend/domain-specific/SymbolTable.h"
 #include "frontend/Frontend.h"
 #include "frontend/lexical-analysis/FlexActions.h"
 #include "frontend/syntactic-analysis/BisonActions.h"
@@ -21,41 +22,45 @@ const int main(const int length, const char ** arguments) {
 	}
 	CompilerState compilerState = {
 		.abstractSyntaxtTree = NULL,
-		.value = 0
 	};
 	ModuleDestructor moduleDestructors[] = {
 		initializeAbstractSyntaxTreeModule(),
 		initializeFlexActionsModule(lexicalAnalyzer),
 		initializeBisonActionsModule(&compilerState),
 		initializeFrontendModule(lexicalAnalyzer),
-		// initializeCalculatorModule(),
+		initializeSemanticModule(),
 		// initializeGeneratorModule()
 	};
 	CompilationStatus compilationStatus = executeSyntacticAnalysis();
 	Program * program = compilerState.abstractSyntaxtTree;
 
-	// if (compilationStatus == SUCCEEDED) {
-	// 	// ----------------------------------------------------------------------------------------
-	// 	// Beginning of the Backend... ------------------------------------------------------------
-	// 	logDebugging(logger, "Computing expression value...");
-	// 	ComputationResult computationResult = executeCalculator(&compilerState);
-	// 	if (computationResult.succeeded) {
-	// 		compilerState.value = computationResult.value;
-	// 		executeGenerator(&compilerState);
-	// 	}
-	// 	else {
-	// 		logError(logger, "The computation phase rejects the input program.");
-	// 		compilationStatus = FAILED;
-	// 	}
-	// 	// ...end of the Backend. -----------------------------------------------------------------
-	// 	// ----------------------------------------------------------------------------------------
-	// }
-	// else {
-	// 	logError(logger, "The syntactic-analysis phase rejects the input program.");
-	// 	compilationStatus = FAILED;
-	// }
+	if (compilationStatus == SUCCEEDED) {
+		// ----------------------------------------------------------------------------------------
+		// Beginning of the Backend... ------------------------------------------------------------
+		logDebugging(logger, "Computing expression value...");
+		ComputationStatus computationResult = executeSemanticAnalysis(&compilerState);
+		if (computationResult == SEMANTIC_OK) {
+			logInformation(logger, "The computation phase completed successfully.");
+			// executeGenerator(&compilerState);
+		}
+		else {
+			logError(logger, "The computation phase rejects the input program.");
+			compilationStatus = FAILED;
+		}
+		// ...end of the Backend. -----------------------------------------------------------------
+		// ----------------------------------------------------------------------------------------
+	}
+	else {
+		logError(logger, "The syntactic-analysis phase rejects the input program.");
+		compilationStatus = FAILED;
+	}
 	logDebugging(logger, "Releasing AST resources...");
 	destroyProgram(program);
+
+	if (compilerState.symbolTable) {
+		destroySymbolTable((SymbolTable*)compilerState.symbolTable);
+	}
+
 	for (int k = (sizeof(moduleDestructors)/sizeof(ModuleDestructor)) - 1; 0 <= k; --k) {
 		moduleDestructors[k]();
 	}
