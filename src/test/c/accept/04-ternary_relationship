@@ -10,12 +10,12 @@ entity Patient {
     name : string not null
 }
 
-entity Treatment {
-    treatment_id : uuid primary
+entity Consultation {
+    consultation_id : uuid primary
     description : string not null
 }
 
-relationship administers(Doctor *-* Patient *-* Treatment) {
-    date : datetime not null
+relationship administers(Doctor one, Patient many, Consultation many) {
+    date_time : datetime not null
     notes : string
 }

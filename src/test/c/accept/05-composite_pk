@@ -3,7 +3,7 @@ schema Inventory
 entity ProductLocation {
     warehouse_id : integer
     product_id : integer
-    PRIMARY (warehouse_id, product_id)
     quantity : integer not null
     last_updated : datetime
+    PRIMARY (warehouse_id, product_id)
 }

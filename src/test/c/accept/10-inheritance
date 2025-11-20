@@ -14,3 +14,9 @@ entity Manager : Employee {
     bonus : decimal
     department : string
 }
+
+relationship manages(Manager one, Employee many) {
+    assigned_date : date not null
+}
+
+relationship reports_to(Employee many, Manager one)
