@@ -1,0 +1,7 @@
+schema S
+
+entity Product {
+    name : string
+    price : integer
+    assert name > price
+}

@@ -1,5 +1,6 @@
 #include "SemanticAnalyzer.h"
 #include "SymbolTable.h"
+#include "TypeChecker.h"
 #include "ValidationContext.h"
 #include "../../support/logging/Logger.h"
 
@@ -47,7 +48,7 @@ ComputationStatus executeSemanticAnalysis(CompilerState* state) {
         state->symbolTable = createSymbolTable();
     }
 
-        ValidationContext ctx = {
+    ValidationContext ctx = {
         .compilerState = state,
         .currentSchema = program->schema,
         .currentEntity = NULL,
@@ -62,6 +63,11 @@ ComputationStatus executeSemanticAnalysis(CompilerState* state) {
     
     logDebugging(_logger, "Pass 1: Building symbol table...");
     ok &= buildSymbolTable(&ctx, program->schema);
+
+    // Add type checking pass
+    logDebugging(_logger, "Pass 2: Type checking...");
+    TypeCheckStatus typeCheckResult = validateAllTypes(program, (SymbolTable*)state->symbolTable);
+    ok &= (typeCheckResult == TYPECHECK_OK);
     // logDebugging(_logger, "Pass 2: Validating entities...");
     // ok &= validateEntities(&ctx);
     // logDebugging(_logger, "Pass 3: Validating relationships...");

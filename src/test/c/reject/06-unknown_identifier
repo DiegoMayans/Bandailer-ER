@@ -1,0 +1,7 @@
+schema S 
+
+entity Person {
+    age : integer
+    assert weight > 10   
+}
+

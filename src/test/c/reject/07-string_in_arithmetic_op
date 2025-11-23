@@ -1,0 +1,7 @@
+schema S
+
+entity Item {
+    name : string
+    cost : integer
+    assert name + cost > 0
+}

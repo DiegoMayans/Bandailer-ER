@@ -123,3 +123,47 @@ int getRelationshipCount(SymbolTable* table) {
     }
     return count;
 }
+
+/* Scope creation functions */
+Scope createEntityScope(SymbolTable* table, Entity* entity) {
+    Scope scope;
+    scope.table = table;
+    scope.entity = entity;
+    scope.relationship = NULL;
+    return scope;
+}
+
+Scope createRelationshipScope(SymbolTable* table, Relationship* relationship) {
+    Scope scope;
+    scope.table = table;
+    scope.entity = NULL;
+    scope.relationship = relationship;
+    return scope;
+}
+
+/* Attribute lookup functions */
+Attribute* lookupAttributeInEntity(Entity* entity, const char* name) {
+    if (!entity || !entity->attributes) return NULL;
+    
+    AttributeList* current = entity->attributes;
+    while (current) {
+        if (current->attribute && strcmp(current->attribute->name, name) == 0) {
+            return current->attribute;
+        }
+        current = current->next;
+    }
+    return NULL;
+}
+
+Attribute* lookupAttributeInRelationship(Relationship* relationship, const char* name) {
+    if (!relationship || !relationship->attributes) return NULL;
+    
+    AttributeList* current = relationship->attributes;
+    while (current) {
+        if (current->attribute && strcmp(current->attribute->name, name) == 0) {
+            return current->attribute;
+        }
+        current = current->next;
+    }
+    return NULL;
+}
