@@ -5,12 +5,10 @@ entity Building {
     address : string not null
 }
 
-weak entity Apartment {
+entity Apartment {
     apt_number : integer
     floor : integer not null
     rooms : integer
 
     PRIMARY (Building:building_id, apt_number)
 }
-
-relationship has_apartment(Building one, Apartment many)

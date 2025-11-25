@@ -280,7 +280,7 @@ Modifier * ModifierDefaultSemanticAction(Literal * defaultValue) {
 
 /* Primary key actions */
 
-PrimaryKey * PrimaryKeySemanticAction(IdentifierList * attributes) {
+PrimaryKey * PrimaryKeySemanticAction(QualifiedIdentifierList *attributes) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	PrimaryKey * primaryKey = calloc(1, sizeof(PrimaryKey));
 	primaryKey->attributes = attributes;
@@ -311,20 +311,34 @@ IdentifierList * AppendIdentifierListSemanticAction(IdentifierList * list, char 
 	return list;
 }
 
-char * ConcatenateIdentifiers(char * prefix, char * identifier) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	size_t prefixLen = strlen(prefix);
-	size_t identifierLen = strlen(identifier);
-	
-	char * fullIdentifier = calloc(prefixLen + 1 + identifierLen + 1, sizeof(char));
-	strcpy(fullIdentifier, prefix);
-	fullIdentifier[prefixLen] = ':';
-	strcpy(fullIdentifier + prefixLen + 1, identifier);
+QualifiedIdentifier * CreateQualifiedIdentifier(char *entity, char *attribute) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    QualifiedIdentifier *qid = calloc(1, sizeof(QualifiedIdentifier));
 
-	free(prefix);
-	free(identifier);
+    qid->entity = entity;       
+    qid->attribute = attribute; 
+    return qid;
+}
 
-	return fullIdentifier;
+QualifiedIdentifierList * QualifiedIdentifierListSemanticAction(QualifiedIdentifier *qid) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    QualifiedIdentifierList *list = calloc(1, sizeof(QualifiedIdentifierList));
+    list->qid = qid;
+    return list;
+}
+
+QualifiedIdentifierList * AppendQualifiedIdentifierListSemanticAction(QualifiedIdentifierList *list, QualifiedIdentifier *qid) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (list == NULL)
+        return QualifiedIdentifierListSemanticAction(qid);
+
+    QualifiedIdentifierList *cur = list;
+    while (cur->next != NULL)
+        cur = cur->next;
+
+    cur->next = calloc(1, sizeof(QualifiedIdentifierList));
+    cur->next->qid = qid;
+    return list;
 }
 
 /* Assertion actions */

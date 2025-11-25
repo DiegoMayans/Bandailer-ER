@@ -39,6 +39,8 @@ typedef struct PrimaryKey PrimaryKey;
 typedef struct Assertion Assertion;
 typedef struct Participation Participation;
 typedef struct IdentifierList IdentifierList;
+typedef struct QualifiedIdentifier QualifiedIdentifier;
+typedef struct QualifiedIdentifierList QualifiedIdentifierList;
 
 /**
  * Enumeration types
@@ -229,7 +231,7 @@ struct ModifierList {
 };
 
 struct PrimaryKey {
-	IdentifierList* attributes;
+	QualifiedIdentifierList* attributes;
 };
 
 struct Assertion {
@@ -245,6 +247,16 @@ struct Participation {
 struct IdentifierList {
 	char* identifier;
 	IdentifierList* next;
+};
+
+struct QualifiedIdentifier {
+    char *entity;      
+    char *attribute;   
+};
+
+struct QualifiedIdentifierList {
+    QualifiedIdentifier *qid;
+    struct QualifiedIdentifierList *next;
 };
 
 /**
@@ -268,5 +280,7 @@ void destroyPrimaryKey(PrimaryKey* primaryKey);
 void destroyAssertion(Assertion* assertion);
 void destroyParticipation(Participation* participation);
 void destroyIdentifierList(IdentifierList* identifierList);
+void destroyQualifiedIdentifierList(QualifiedIdentifierList* qidList);
+void destroyQualifiedIdentifier(QualifiedIdentifier* qid);
 
 #endif

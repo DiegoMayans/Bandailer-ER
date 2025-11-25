@@ -1,0 +1,11 @@
+schema Organization
+
+entity Person {
+    id : uuid primary
+    name : string not null
+}
+
+entity Employee : Person {
+    salary : decimal not null primary
+    hire_date : date
+}

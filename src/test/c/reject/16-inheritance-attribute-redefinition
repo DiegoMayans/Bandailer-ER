@@ -1,0 +1,23 @@
+schema Organization
+
+entity Person {
+    id : uuid primary
+    name : string not null
+}
+
+entity Employee : Person {
+    name : string not null  
+    salary : decimal not null
+    hire_date : date
+}
+
+entity Manager : Employee {
+    bonus : decimal
+    department : string
+}
+
+relationship manages(Manager one, Employee many) {
+    assigned_date : date not null
+}
+
+relationship reports_to(Employee many, Manager one)

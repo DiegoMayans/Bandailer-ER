@@ -50,6 +50,8 @@ void yyerror(const YYLTYPE * location, const char * message) {}
     Assertion *assertion;
 		Participation *participation;
 		IdentifierList *identifierList;
+    QualifiedIdentifier *qualifiedIdentifier;
+    QualifiedIdentifierList *qualifiedIdentifierList;
 }
 
 /**
@@ -76,6 +78,8 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %destructor { destroyAssertion($$); } <assertion>
 %destructor { destroyParticipation($$); } <participation>
 %destructor { destroyIdentifierList($$); } <identifierList>
+%destructor { destroyQualifiedIdentifierList($$); } <qualifiedIdentifierList>
+%destructor { destroyQualifiedIdentifier($$); } <qualifiedIdentifier>
 
 %destructor { free($$); } <string>
 
@@ -120,8 +124,8 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %type <literal> literal
 %type <participation> participation_opt
 %type <identifierList> identifier_list
-%type <string> qualified_identifier
-
+%type <qualifiedIdentifierList> qualified_identifier_list
+%type <qualifiedIdentifier> qualified_identifier
 
 /* Operator precedence from lowest to highest */
 %left OP_OR
@@ -188,19 +192,22 @@ modifier:
     ;
 
 primary_decl:
-      PRIMARY_COMPOSITE OPEN_PAREN identifier_list CLOSE_PAREN
+      PRIMARY_COMPOSITE OPEN_PAREN qualified_identifier_list CLOSE_PAREN
         { $$ = PrimaryKeySemanticAction($3); }
     ;
 
-identifier_list:
-      qualified_identifier                    { $$ = IdentifierListSemanticAction($1); }
-    | identifier_list COMMA qualified_identifier        
-                                              { $$ = AppendIdentifierListSemanticAction($1, $3); }
+qualified_identifier_list:
+      qualified_identifier                    
+        { $$ = QualifiedIdentifierListSemanticAction($1); }
+    | qualified_identifier_list COMMA qualified_identifier        
+        { $$ = AppendQualifiedIdentifierListSemanticAction($1, $3); }
     ;
 
 qualified_identifier:
-      IDENTIFIER                              { $$ = $1; }
-    | IDENTIFIER COLON IDENTIFIER             { $$ = ConcatenateIdentifiers($1, $3); } 
+      IDENTIFIER                              
+        { $$ = CreateQualifiedIdentifier(NULL, $1); }
+    | IDENTIFIER COLON IDENTIFIER             
+      { $$ = CreateQualifiedIdentifier($1, $3); }
     ;
 
 assert_decl:
@@ -257,6 +264,11 @@ type_spec:
     | TOK_DATE_TYPE OPEN_BRACKET CLOSE_BRACKET       { $$ = ArrayTypeSemanticAction(TYPE_DATE); }
     | TOK_DATETIME_TYPE OPEN_BRACKET CLOSE_BRACKET   { $$ = ArrayTypeSemanticAction(TYPE_DATETIME); }
     | TOK_UUID_TYPE OPEN_BRACKET CLOSE_BRACKET       { $$ = ArrayTypeSemanticAction(TYPE_UUID); }
+    ;
+
+  identifier_list:
+      IDENTIFIER                              { $$ = IdentifierListSemanticAction($1); }
+    | identifier_list COMMA IDENTIFIER       { $$ = AppendIdentifierListSemanticAction($1, $3); }
     ;
 
 expression:

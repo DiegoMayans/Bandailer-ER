@@ -48,12 +48,14 @@ Modifier * ModifierSemanticAction(ModifierType modifierType);
 Modifier * ModifierDefaultSemanticAction(Literal * defaultValue);
 
 /* Primary key actions */
-PrimaryKey * PrimaryKeySemanticAction(IdentifierList * attributes);
+PrimaryKey * PrimaryKeySemanticAction(QualifiedIdentifierList * attributes);
 
 /* Identifier list actions */
 IdentifierList * IdentifierListSemanticAction(char * identifier);
 IdentifierList * AppendIdentifierListSemanticAction(IdentifierList * list, char * identifier);
-char * ConcatenateIdentifiers(char * prefix, char * identifier);
+QualifiedIdentifier * CreateQualifiedIdentifier(char *entity, char *attribute);
+QualifiedIdentifierList * QualifiedIdentifierListSemanticAction(QualifiedIdentifier *qid);
+QualifiedIdentifierList * AppendQualifiedIdentifierListSemanticAction(QualifiedIdentifierList *list, QualifiedIdentifier *qid);
 
 /* Assertion actions */
 Assertion * AssertionSemanticAction(Expression * condition);

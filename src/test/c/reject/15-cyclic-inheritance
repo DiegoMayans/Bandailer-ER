@@ -1,0 +1,17 @@
+schema Organization
+
+entity Employee : Manager {
+    salary : decimal not null
+    hire_date : date
+}
+
+entity Manager : Employee {
+    bonus : decimal
+    department : string
+}
+
+relationship manages(Manager one, Employee many) {
+    assigned_date : date not null
+}
+
+relationship reports_to(Employee many, Manager one)

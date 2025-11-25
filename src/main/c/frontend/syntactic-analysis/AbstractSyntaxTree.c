@@ -192,7 +192,7 @@ void destroyModifierList(ModifierList* modifierList) {
 void destroyPrimaryKey(PrimaryKey* primaryKey) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
 	if (primaryKey != NULL) {
-		destroyIdentifierList(primaryKey->attributes);
+		destroyQualifiedIdentifierList(primaryKey->attributes);
 		free(primaryKey);
 	}
 }
@@ -219,5 +219,23 @@ void destroyIdentifierList(IdentifierList* identifierList) {
 		free(identifierList->identifier);
 		destroyIdentifierList(identifierList->next);
 		free(identifierList);
+	}
+}
+
+void destroyQualifiedIdentifierList(QualifiedIdentifierList* qidList) {
+		logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+		if (qidList != NULL) {
+				destroyQualifiedIdentifier(qidList->qid);
+				destroyQualifiedIdentifierList(qidList->next);
+				free(qidList);
+		}
+}
+
+void destroyQualifiedIdentifier(QualifiedIdentifier* qid) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (qid != NULL) {
+		free(qid->entity);
+		free(qid->attribute);
+		free(qid);
 	}
 }

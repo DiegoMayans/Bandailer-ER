@@ -1,0 +1,6 @@
+schema Organization
+
+entity Employee : Employee {
+    salary : decimal not null
+    hire_date : date
+}
