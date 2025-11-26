@@ -5,7 +5,6 @@
 #include "WeakEntityRules.h"
 #include <string.h>
 
-
 static Logger *_logger = NULL;
 
 static void initializeLogger() {
@@ -16,20 +15,23 @@ static void initializeLogger() {
 static bool validateSingleEntity(ValidationContext *ctx, Entity *entity) {
   bool ok = true;
 
-  // 1. Validaciones de Jerarquía (Primero, porque define atributos heredados)
+  // 1. Inheritance validations
   if (entity->parent) {
     ok &= validateInheritanceParentExists(ctx, entity);
     ok &= validateInheritanceCycles(ctx, entity);
     ok &= validateInheritanceAttributeRedefinition(ctx, entity);
   }
 
-  // 2. Validaciones de Claves Primarias
+  // 2. Primary Key validations
   ok &= validateEntityPrimaryKey(ctx, entity);
 
-  // 3. Validaciones de Entidades Débiles
+  // 3. Weak Entity validations
   if (entity->weak) {
     ok &= validateWeakEntityRelationships(ctx, entity);
   }
+
+  // 4. Assertions validations
+  // ok &= validateEntityAssertions(ctx, entity);
 
   return ok;
 }

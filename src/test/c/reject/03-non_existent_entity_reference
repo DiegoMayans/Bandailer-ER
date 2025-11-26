@@ -1,5 +1,3 @@
-/** FALSE POSITIVE: BACKEND MISSING */
-/
 schema BadReference
 
 entity Employee {

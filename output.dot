@@ -1,0 +1,25 @@
+digraph Building {
+    layout=neato;
+    overlap=false;
+    splines=curved;
+    node [style=filled, fillcolor=white];
+    edge [fontsize=10, len=1.5];
+
+    Building [shape=ellipse, style="solid", fontname="Arial Bold", label="Building"];
+    attr_Building_building_id [shape=ellipse, style=solid, fontname="Arial", fontsize=10, label=<<u>building_id</u>>];
+    Building -> attr_Building_building_id [dir=none, color="gray40"];
+    attr_Building_address [shape=ellipse, style=solid, fontname="Arial", fontsize=10, label=<address>];
+    Building -> attr_Building_address [dir=none, color="gray40"];
+    Apartment [shape=ellipse, style="dashed", fontname="Arial Bold", label="Apartment"];
+    attr_Apartment_apt_number [shape=ellipse, style=solid, fontname="Arial", fontsize=10, label=<<u>apt_number</u>>];
+    Apartment -> attr_Apartment_apt_number [dir=none, color="gray40"];
+    attr_Apartment_floor [shape=ellipse, style=solid, fontname="Arial", fontsize=10, label=<floor>];
+    Apartment -> attr_Apartment_floor [dir=none, color="gray40"];
+    attr_Apartment_rooms [shape=ellipse, style=solid, fontname="Arial", fontsize=10, label=<rooms>];
+    Apartment -> attr_Apartment_rooms [dir=none, color="gray40"];
+
+    has_apartment_rel [shape=diamond, style=filled, fillcolor=lightgray, peripheries=2, label="has_apartment"];
+    Building -> has_apartment_rel [label="1", dir=none, color="black"];
+    Apartment -> has_apartment_rel [label="N", dir=none, color="black:black"];
+
+}

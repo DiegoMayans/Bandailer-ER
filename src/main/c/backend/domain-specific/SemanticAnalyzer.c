@@ -4,7 +4,7 @@
 #include "ValidationContext.h"
 #include "types/TypeChecker.h"
 #include "validation/EntityValidator.h"
-
+#include "validation/RelationshipValidator.h"
 
 /* MODULE INTERNAL STATE */
 
@@ -73,6 +73,10 @@ ComputationStatus executeSemanticAnalysis(CompilerState *state) {
   // Add entity validation pass
   logDebugging(_logger, "Pass 3: Entity validation...");
   ok &= validateEntities(&ctx);
+
+  // Add relationship validation pass
+  logDebugging(_logger, "Pass 4: Relationship validation...");
+  ok &= validateRelationships(&ctx);
 
   if (ok) {
     logInformation(_logger, "Semantic analysis completed successfully");

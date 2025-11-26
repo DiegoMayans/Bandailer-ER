@@ -13,4 +13,4 @@ weak entity Apartment {
     PRIMARY (Building:building_id, apt_number)
 }
 
-relationship has_apartment(Building one, Apartment many total)
+relationship has_apartment(Building one, Apartment many)

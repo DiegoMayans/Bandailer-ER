@@ -1,4 +1,5 @@
-// #include "backend/code-generation/Generator.h"
+#include "backend/code-generation/Generator.h"
+#include "backend/code-generation/GraphvizGenerator.h"
 #include "backend/domain-specific/SemanticAnalyzer.h"
 #include "backend/domain-specific/SymbolTable.h"
 #include "frontend/Frontend.h"
@@ -14,58 +15,59 @@
  * parse anything inside this project instead of using Flex and Bison, I will
  * find you, and I will kill you (Bryan Mills; "Taken", 2008).
  */
-const int main(const int length, const char ** arguments) {
-	LexicalAnalyzer * lexicalAnalyzer = createLexicalAnalyzer();
-	Logger * logger = createLogger("EntryPoint");
-	for (int k = 0; k < length; ++k) {
-		logDebugging(logger, "Argument %d: \"%s\"", k, arguments[k]);
-	}
-	CompilerState compilerState = {
-		.abstractSyntaxtTree = NULL,
-	};
-	ModuleDestructor moduleDestructors[] = {
-		initializeAbstractSyntaxTreeModule(),
-		initializeFlexActionsModule(lexicalAnalyzer),
-		initializeBisonActionsModule(&compilerState),
-		initializeFrontendModule(lexicalAnalyzer),
-		initializeSemanticModule(),
-		// initializeGeneratorModule()
-	};
-	CompilationStatus compilationStatus = executeSyntacticAnalysis();
-	Program * program = compilerState.abstractSyntaxtTree;
+const int main(const int length, const char **arguments) {
+  LexicalAnalyzer *lexicalAnalyzer = createLexicalAnalyzer();
+  Logger *logger = createLogger("EntryPoint");
+  for (int k = 0; k < length; ++k) {
+    logDebugging(logger, "Argument %d: \"%s\"", k, arguments[k]);
+  }
+  CompilerState compilerState = {
+      .abstractSyntaxtTree = NULL,
+  };
+  ModuleDestructor moduleDestructors[] = {
+      initializeAbstractSyntaxTreeModule(),
+      initializeFlexActionsModule(lexicalAnalyzer),
+      initializeBisonActionsModule(&compilerState),
+      initializeFrontendModule(lexicalAnalyzer),
+      initializeSemanticModule(),
+      initializeGraphvizGeneratorModule()};
+  CompilationStatus compilationStatus = executeSyntacticAnalysis();
+  Program *program = compilerState.abstractSyntaxtTree;
 
-	if (compilationStatus == SUCCEEDED) {
-		// ----------------------------------------------------------------------------------------
-		// Beginning of the Backend... ------------------------------------------------------------
-		logDebugging(logger, "Computing expression value...");
-		ComputationStatus computationResult = executeSemanticAnalysis(&compilerState);
-		if (computationResult == SEMANTIC_OK) {
-			logInformation(logger, "The computation phase completed successfully.");
-			// executeGenerator(&compilerState);
-		}
-		else {
-			logError(logger, "The computation phase rejects the input program.");
-			compilationStatus = FAILED;
-		}
-		// ...end of the Backend. -----------------------------------------------------------------
-		// ----------------------------------------------------------------------------------------
-	}
-	else {
-		logError(logger, "The syntactic-analysis phase rejects the input program.");
-		compilationStatus = FAILED;
-	}
-	logDebugging(logger, "Releasing AST resources...");
-	destroyProgram(program);
+  if (compilationStatus == SUCCEEDED) {
+    // ----------------------------------------------------------------------------------------
+    // Beginning of the Backend...
+    // ------------------------------------------------------------
+    logDebugging(logger, "Computing expression value...");
+    ComputationStatus computationResult =
+        executeSemanticAnalysis(&compilerState);
+    if (computationResult == SEMANTIC_OK) {
+      logInformation(logger, "The computation phase completed successfully.");
+      generateGraphviz(program, "output.dot");
+    } else {
+      logError(logger, "The computation phase rejects the input program.");
+      compilationStatus = FAILED;
+    }
+    // ...end of the Backend.
+    // -----------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
+  } else {
+    logError(logger, "The syntactic-analysis phase rejects the input program.");
+    compilationStatus = FAILED;
+  }
+  logDebugging(logger, "Releasing AST resources...");
+  destroyProgram(program);
 
-	if (compilerState.symbolTable) {
-		destroySymbolTable((SymbolTable*)compilerState.symbolTable);
-	}
+  if (compilerState.symbolTable) {
+    destroySymbolTable((SymbolTable *)compilerState.symbolTable);
+  }
 
-	for (int k = (sizeof(moduleDestructors)/sizeof(ModuleDestructor)) - 1; 0 <= k; --k) {
-		moduleDestructors[k]();
-	}
-	logDebugging(logger, "Compilation is done.");
-	destroyLogger(logger);
-	destroyLexicalAnalyzer(lexicalAnalyzer);
-	return compilationStatus;
+  for (int k = (sizeof(moduleDestructors) / sizeof(ModuleDestructor)) - 1;
+       0 <= k; --k) {
+    moduleDestructors[k]();
+  }
+  logDebugging(logger, "Compilation is done.");
+  destroyLogger(logger);
+  destroyLexicalAnalyzer(lexicalAnalyzer);
+  return compilationStatus;
 }

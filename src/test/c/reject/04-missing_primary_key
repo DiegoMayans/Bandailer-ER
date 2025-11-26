@@ -1,5 +1,3 @@
-/** FALSE POSITIVE: BACKEND MISSING */
-/
 schema NoPrimaryKey
 
 entity Employee {

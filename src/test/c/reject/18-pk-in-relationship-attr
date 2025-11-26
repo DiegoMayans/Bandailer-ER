@@ -1,0 +1,15 @@
+schema Company
+
+entity Department {
+    did : uuid primary
+    name : string not null
+}
+
+entity Employee {
+    eid : uuid primary
+    name : string not null
+}
+
+relationship works_in(Employee one, Department many) {
+    hours : integer not null primary
+}
