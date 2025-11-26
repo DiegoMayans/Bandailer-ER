@@ -162,9 +162,6 @@ void destroyLiteral(Literal* literal) {
 void destroyType(Type* type) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
 	if (type != NULL) {
-		if (type->kind == TYPE_ENUM) {
-			destroyIdentifierList(type->enumValues);
-		}
 		free(type);
 	}
 }
@@ -210,15 +207,6 @@ void destroyParticipation(Participation* participation) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
 	if (participation != NULL) {
 		free(participation);
-	}
-}
-
-void destroyIdentifierList(IdentifierList* identifierList) {
-	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (identifierList != NULL) {
-		free(identifierList->identifier);
-		destroyIdentifierList(identifierList->next);
-		free(identifierList);
 	}
 }
 

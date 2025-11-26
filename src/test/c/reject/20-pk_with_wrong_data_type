@@ -1,0 +1,6 @@
+schema Company
+
+entity Employee {
+    eid  : date primary
+    name : string
+}

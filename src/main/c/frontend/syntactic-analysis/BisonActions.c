@@ -236,15 +236,6 @@ Type *ArrayTypeSemanticAction(TypeKind typeToken) {
   return type;
 }
 
-Type *EnumTypeSemanticAction(IdentifierList *enumValues) {
-  _logSyntacticAnalyzerAction(__FUNCTION__);
-  Type *type = calloc(1, sizeof(Type));
-  type->kind = TYPE_ENUM;
-  type->isArray = false;
-  type->enumValues = enumValues;
-  return type;
-}
-
 /* Modifier actions */
 
 ModifierList *EmptyModifierListSemanticAction() {
@@ -294,30 +285,7 @@ PrimaryKey *PrimaryKeySemanticAction(QualifiedIdentifierList *attributes) {
   return primaryKey;
 }
 
-/* Identifier list actions */
-
-IdentifierList *IdentifierListSemanticAction(char *identifier) {
-  _logSyntacticAnalyzerAction(__FUNCTION__);
-  IdentifierList *list = calloc(1, sizeof(IdentifierList));
-  list->identifier = identifier;
-  return list;
-}
-
-IdentifierList *AppendIdentifierListSemanticAction(IdentifierList *list,
-                                                   char *identifier) {
-  _logSyntacticAnalyzerAction(__FUNCTION__);
-  if (list == NULL) {
-    return IdentifierListSemanticAction(identifier);
-  }
-
-  IdentifierList *current = list;
-  while (current->next != NULL) {
-    current = current->next;
-  }
-  current->next = calloc(1, sizeof(IdentifierList));
-  current->next->identifier = identifier;
-  return list;
-}
+/* Qualified identifier list actions */
 
 QualifiedIdentifier *CreateQualifiedIdentifier(char *entity, char *attribute) {
   _logSyntacticAnalyzerAction(__FUNCTION__);
@@ -414,7 +382,6 @@ Participation *ParticipationSemanticAction(TokenLabel participationType) {
   _logSyntacticAnalyzerAction(__FUNCTION__);
   Participation *participation = calloc(1, sizeof(Participation));
 
-  // Map TokenLabel to ParticipationType enum
   if (participationType == TOTAL) {
     participation->type = PARTICIPATION_TOTAL;
   } else if (participationType == PARTIAL) {

@@ -1,5 +1,6 @@
 #include "EntityValidator.h"
 #include "../../../support/logging/Logger.h"
+#include "AttributeModifierRules.h"
 #include "EntityPKRules.h"
 #include "InheritanceRules.h"
 #include "WeakEntityRules.h"
@@ -30,7 +31,11 @@ static bool validateSingleEntity(ValidationContext *ctx, Entity *entity) {
     ok &= validateWeakEntityRelationships(ctx, entity);
   }
 
-  // 4. Assertions validations
+  // 4. Attribute modifier type validations
+  ok &= validateDefaultModifierTypes(ctx, entity);
+  ok &= validatePrimaryModifierTypes(ctx, entity);
+
+  // 5. Assertions validations
   // ok &= validateEntityAssertions(ctx, entity);
 
   return ok;

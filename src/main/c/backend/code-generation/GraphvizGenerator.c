@@ -254,14 +254,26 @@ static void writeAttributeNode(FILE *f, Entity *e, Attribute *attr) {
   bool isPk = hasModifier(attr->modifiers, MOD_PRIMARY) ||
               isAttributeInPrimaryKey(e, attr->name);
 
+  // Check for derived modifier
+  bool isDerived = hasModifier(attr->modifiers, MOD_DERIVED);
+
+  // Get type string
+  const char *typeStr = "unknown";
+  if (attr->type) {
+    typeStr = typeToString(attr->type->kind);
+  }
+
+  // Determine peripheries (double border for derived attributes)
+  int peripheries = isDerived ? 2 : 1;
+
   fprintf(f,
-          "    attr_%s_%s [shape=ellipse, style=solid, fontname=\"Arial\", "
-          "fontsize=10, label=<",
-          e->name, attr->name);
+          "    attr_%s_%s [shape=ellipse, style=solid, peripheries=%d, "
+          "fontname=\"Arial\", fontsize=10, label=<",
+          e->name, attr->name, peripheries);
 
   if (isPk)
     fprintf(f, "<u>");
-  fprintf(f, "%s", attr->name);
+  fprintf(f, "%s : %s", attr->name, typeStr);
   if (isPk)
     fprintf(f, "</u>");
 
@@ -318,8 +330,22 @@ static void writeRelationshipAttributeNode(FILE *f, const char *relName,
   if (!attr || !attr->name)
     return;
 
-  fprintf(f, "    attr_rel_%s_%s [shape=ellipse, fontsize=9, label=\"%s\"];\n",
-          relName, attr->name, attr->name);
+  // Check for derived modifier
+  bool isDerived = hasModifier(attr->modifiers, MOD_DERIVED);
+
+  // Get type string
+  const char *typeStr = "unknown";
+  if (attr->type) {
+    typeStr = typeToString(attr->type->kind);
+  }
+
+  // Determine peripheries (double border for derived attributes)
+  int peripheries = isDerived ? 2 : 1;
+
+  fprintf(f,
+          "    attr_rel_%s_%s [shape=ellipse, peripheries=%d, fontsize=9, "
+          "label=\"%s : %s\"];\n",
+          relName, attr->name, peripheries, attr->name, typeStr);
   fprintf(f,
           "    %s_rel -> attr_rel_%s_%s [dir=none, style=dashed, "
           "color=\"gray40\"];\n",
@@ -344,8 +370,6 @@ static void writeRelationship(FILE *f, Relationship *r, Schema *schema) {
   if (!r)
     return;
 
-  // Detect if this is an identifying relationship (weak entity with total
-  // participation)
   bool isIdentifyingRel = false;
 
   for (ParticipantList *pl = r->participants; pl != NULL; pl = pl->next) {
@@ -362,14 +386,12 @@ static void writeRelationship(FILE *f, Relationship *r, Schema *schema) {
     }
   }
 
-  // Draw the relationship diamond
   int peripheries = isIdentifyingRel ? 2 : 1;
   fprintf(f,
           "    %s_rel [shape=diamond, style=filled, fillcolor=lightgray, "
           "peripheries=%d, label=\"%s\"];\n",
           r->name, peripheries, r->name);
 
-  // Draw relationship attributes as separate nodes
   if (r->attributes) {
     for (AttributeList *al = r->attributes; al != NULL; al = al->next) {
       if (al->attribute) {
@@ -387,14 +409,14 @@ static void writeRelationship(FILE *f, Relationship *r, Schema *schema) {
     const char *card = cardinalityToString(p->cardinality);
 
     // Determine edge style based on participation
-    // Total participation: double line (color="black:black")
-    // Partial participation: single line (color="black")
     const char *color = "black";
     if (p->participation && p->participation->type == PARTICIPATION_TOTAL) {
       color = "black:black";
     }
 
-    fprintf(f, "    %s -> %s_rel [label=\"%s\", dir=none, color=\"%s\"];\n",
+    fprintf(f,
+            "    %s -> %s_rel [taillabel=\"%s\", labeldistance=1.5, dir=none, "
+            "color=\"%s\"];\n",
             p->entityName, r->name, card, color);
   }
 }

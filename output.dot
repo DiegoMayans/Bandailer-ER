@@ -1,25 +1,35 @@
-digraph Building {
+digraph Organization {
     layout=neato;
     overlap=false;
     splines=curved;
     node [style=filled, fillcolor=white];
     edge [fontsize=10, len=1.5];
 
-    Building [shape=ellipse, style="solid", fontname="Arial Bold", label="Building"];
-    attr_Building_building_id [shape=ellipse, style=solid, fontname="Arial", fontsize=10, label=<<u>building_id</u>>];
-    Building -> attr_Building_building_id [dir=none, color="gray40"];
-    attr_Building_address [shape=ellipse, style=solid, fontname="Arial", fontsize=10, label=<address>];
-    Building -> attr_Building_address [dir=none, color="gray40"];
-    Apartment [shape=ellipse, style="dashed", fontname="Arial Bold", label="Apartment"];
-    attr_Apartment_apt_number [shape=ellipse, style=solid, fontname="Arial", fontsize=10, label=<<u>apt_number</u>>];
-    Apartment -> attr_Apartment_apt_number [dir=none, color="gray40"];
-    attr_Apartment_floor [shape=ellipse, style=solid, fontname="Arial", fontsize=10, label=<floor>];
-    Apartment -> attr_Apartment_floor [dir=none, color="gray40"];
-    attr_Apartment_rooms [shape=ellipse, style=solid, fontname="Arial", fontsize=10, label=<rooms>];
-    Apartment -> attr_Apartment_rooms [dir=none, color="gray40"];
+    Person [shape=ellipse, style="solid", fontname="Arial Bold", label="Person"];
+    attr_Person_id [shape=ellipse, style=solid, peripheries=1, fontname="Arial", fontsize=10, label=<<u>id : uuid</u>>];
+    Person -> attr_Person_id [dir=none, color="gray40"];
+    attr_Person_name [shape=ellipse, style=solid, peripheries=1, fontname="Arial", fontsize=10, label=<name : string>];
+    Person -> attr_Person_name [dir=none, color="gray40"];
+    Employee [shape=ellipse, style="solid", fontname="Arial Bold", label="Employee"];
+    attr_Employee_salary [shape=ellipse, style=solid, peripheries=1, fontname="Arial", fontsize=10, label=<salary : decimal>];
+    Employee -> attr_Employee_salary [dir=none, color="gray40"];
+    attr_Employee_hire_date [shape=ellipse, style=solid, peripheries=1, fontname="Arial", fontsize=10, label=<hire_date : date>];
+    Employee -> attr_Employee_hire_date [dir=none, color="gray40"];
+    Manager [shape=ellipse, style="solid", fontname="Arial Bold", label="Manager"];
+    attr_Manager_bonus [shape=ellipse, style=solid, peripheries=1, fontname="Arial", fontsize=10, label=<bonus : decimal>];
+    Manager -> attr_Manager_bonus [dir=none, color="gray40"];
+    attr_Manager_department [shape=ellipse, style=solid, peripheries=1, fontname="Arial", fontsize=10, label=<department : string>];
+    Manager -> attr_Manager_department [dir=none, color="gray40"];
 
-    has_apartment_rel [shape=diamond, style=filled, fillcolor=lightgray, peripheries=2, label="has_apartment"];
-    Building -> has_apartment_rel [label="1", dir=none, color="black"];
-    Apartment -> has_apartment_rel [label="N", dir=none, color="black:black"];
+    manages_rel [shape=diamond, style=filled, fillcolor=lightgray, peripheries=1, label="manages"];
+    attr_rel_manages_assigned_date [shape=ellipse, peripheries=1, fontsize=9, label="assigned_date : date"];
+    manages_rel -> attr_rel_manages_assigned_date [dir=none, style=dashed, color="gray40"];
+    Manager -> manages_rel [taillabel="1", labeldistance=1.5, dir=none, color="black"];
+    Employee -> manages_rel [taillabel="N", labeldistance=1.5, dir=none, color="black"];
+    reports_to_rel [shape=diamond, style=filled, fillcolor=lightgray, peripheries=1, label="reports_to"];
+    Employee -> reports_to_rel [taillabel="N", labeldistance=1.5, dir=none, color="black"];
+    Manager -> reports_to_rel [taillabel="1", labeldistance=1.5, dir=none, color="black"];
 
+    Employee -> Person [arrowhead=onormal, label="is-a"];
+    Manager -> Employee [arrowhead=onormal, label="is-a"];
 }

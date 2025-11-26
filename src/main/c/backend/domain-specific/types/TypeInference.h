@@ -14,6 +14,8 @@
  */
 TypeKind inferExpressionType(Expression *expr, Scope scope);
 
+TypeKind inferLiteralType(Literal *lit);
+
 /**
  * Checks if a type is numeric (INTEGER or DECIMAL).
  */

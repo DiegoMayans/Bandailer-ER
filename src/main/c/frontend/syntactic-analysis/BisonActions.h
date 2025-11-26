@@ -39,7 +39,6 @@ AttributeList * AppendAttributeListSemanticAction(AttributeList * list, Attribut
 /* Type actions */
 Type * TypeSemanticAction(TypeKind typeToken);
 Type * ArrayTypeSemanticAction(TypeKind typeToken);
-Type * EnumTypeSemanticAction(IdentifierList * enumValues);
 
 /* Modifier actions */
 ModifierList * EmptyModifierListSemanticAction();
@@ -51,8 +50,6 @@ Modifier * ModifierDefaultSemanticAction(Literal * defaultValue);
 PrimaryKey * PrimaryKeySemanticAction(QualifiedIdentifierList * attributes);
 
 /* Identifier list actions */
-IdentifierList * IdentifierListSemanticAction(char * identifier);
-IdentifierList * AppendIdentifierListSemanticAction(IdentifierList * list, char * identifier);
 QualifiedIdentifier * CreateQualifiedIdentifier(char *entity, char *attribute);
 QualifiedIdentifierList * QualifiedIdentifierListSemanticAction(QualifiedIdentifier *qid);
 QualifiedIdentifierList * AppendQualifiedIdentifierListSemanticAction(QualifiedIdentifierList *list, QualifiedIdentifier *qid);

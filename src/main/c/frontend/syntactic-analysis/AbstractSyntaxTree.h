@@ -212,7 +212,6 @@ struct Literal {
 struct Type {
   TypeKind kind;
   bool isArray;
-  IdentifierList *enumValues; // For enum types
 };
 
 struct Modifier {

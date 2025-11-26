@@ -1,0 +1,18 @@
+schema TaskManagement
+
+entity Task {
+    task_id : uuid primary
+    title : string not null
+    status : enum not null
+    priority : enum not null
+    category : enum not null
+    created_at : datetime not null
+}
+
+entity User {
+    user_id : uuid primary
+    username : string not null
+    role : enum not null
+}
+
+relationship assigned_to(Task many, User one)

@@ -1,0 +1,11 @@
+schema Configuration
+
+entity Settings {
+    setting_id : uuid primary
+    max_retries : integer default 3
+    timeout_seconds : integer default 30
+    enabled : bool default true
+    api_version : string default "v1.0"
+    threshold : decimal default 0.75
+    created_at : datetime not null
+}

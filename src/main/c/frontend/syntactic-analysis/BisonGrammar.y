@@ -49,7 +49,6 @@ void yyerror(const YYLTYPE * location, const char * message) {}
     PrimaryKey *primaryKey;
     Assertion *assertion;
 		Participation *participation;
-		IdentifierList *identifierList;
     QualifiedIdentifier *qualifiedIdentifier;
     QualifiedIdentifierList *qualifiedIdentifierList;
 }
@@ -77,7 +76,6 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %destructor { destroyPrimaryKey($$); } <primaryKey>
 %destructor { destroyAssertion($$); } <assertion>
 %destructor { destroyParticipation($$); } <participation>
-%destructor { destroyIdentifierList($$); } <identifierList>
 %destructor { destroyQualifiedIdentifierList($$); } <qualifiedIdentifierList>
 %destructor { destroyQualifiedIdentifier($$); } <qualifiedIdentifier>
 
@@ -123,19 +121,19 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %type <expression> expression
 %type <literal> literal
 %type <participation> participation_opt
-%type <identifierList> identifier_list
 %type <qualifiedIdentifierList> qualified_identifier_list
 %type <qualifiedIdentifier> qualified_identifier
 
 /* Operator precedence from lowest to highest */
+%nonassoc IFX
+%nonassoc OTHERWISE
+
 %left OP_OR
 %left OP_AND
 %nonassoc OP_EQ OP_NEQ OP_LT OP_GT OP_LTE OP_GTE
 %left OP_ADD OP_SUB
 %left OP_MUL OP_DIV
 %right OP_NOT
-%nonassoc IFX
-%nonassoc OTHERWISE
 
 %%
 
@@ -255,8 +253,7 @@ type_spec:
     | TOK_DATE_TYPE                           { $$ = TypeSemanticAction(TYPE_DATE); }
     | TOK_DATETIME_TYPE                       { $$ = TypeSemanticAction(TYPE_DATETIME); }
     | TOK_UUID_TYPE                           { $$ = TypeSemanticAction(TYPE_UUID); }
-    | ENUM OPEN_BRACE identifier_list CLOSE_BRACE
-                                              { $$ = EnumTypeSemanticAction($3); }
+    | ENUM                                    { $$ = TypeSemanticAction(TYPE_ENUM); }
     | TOK_INTEGER_TYPE OPEN_BRACKET CLOSE_BRACKET    { $$ = ArrayTypeSemanticAction(TYPE_INTEGER); }
     | TOK_DECIMAL_TYPE OPEN_BRACKET CLOSE_BRACKET    { $$ = ArrayTypeSemanticAction(TYPE_DECIMAL); }
     | TOK_STRING_TYPE OPEN_BRACKET CLOSE_BRACKET     { $$ = ArrayTypeSemanticAction(TYPE_STRING); }
@@ -264,11 +261,6 @@ type_spec:
     | TOK_DATE_TYPE OPEN_BRACKET CLOSE_BRACKET       { $$ = ArrayTypeSemanticAction(TYPE_DATE); }
     | TOK_DATETIME_TYPE OPEN_BRACKET CLOSE_BRACKET   { $$ = ArrayTypeSemanticAction(TYPE_DATETIME); }
     | TOK_UUID_TYPE OPEN_BRACKET CLOSE_BRACKET       { $$ = ArrayTypeSemanticAction(TYPE_UUID); }
-    ;
-
-  identifier_list:
-      IDENTIFIER                              { $$ = IdentifierListSemanticAction($1); }
-    | identifier_list COMMA IDENTIFIER       { $$ = AppendIdentifierListSemanticAction($1, $3); }
     ;
 
 expression:

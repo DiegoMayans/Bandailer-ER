@@ -36,6 +36,7 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
 		src/main/c/backend/code-generation/GraphvizGenerator.c
 		src/main/c/backend/domain-specific/validation/EntityValidator.c
 		src/main/c/backend/domain-specific/validation/EntityPKRules.c
+		src/main/c/backend/domain-specific/validation/AttributeModifierRules.c
 		src/main/c/backend/domain-specific/validation/InheritanceRules.c
 		src/main/c/backend/domain-specific/validation/WeakEntityRules.c
 		src/main/c/backend/domain-specific/validation/RelationshipValidator.c

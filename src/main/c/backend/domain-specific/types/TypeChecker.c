@@ -3,7 +3,6 @@
 #include "../SymbolTable.h"
 #include "TypeInference.h"
 
-
 static Logger *_logger = NULL;
 
 static void initializeLogger() {
@@ -34,9 +33,7 @@ TypeCheckStatus validateAllTypes(Program *program, SymbolTable *symbolTable) {
              modList = modList->next) {
           Modifier *m = modList->modifier;
           if (m->type == MOD_DEFAULT && m->defaultValue) {
-            TypeKind exprType =
-                inferExpressionType((Expression *)m->defaultValue,
-                                    createEntityScope(symbolTable, e));
+            TypeKind exprType = inferLiteralType(m->defaultValue);
 
             if (exprType == TYPE_ERROR || exprType != a->type->kind) {
               logError(_logger,

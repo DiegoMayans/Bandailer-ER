@@ -1,0 +1,9 @@
+schema Configuration
+
+entity Settings {
+    setting_id : uuid primary
+    values : uuid default 1
+    timeout_seconds : integer default 30
+    enabled : bool default true
+    created_at : datetime not null
+}

@@ -1,0 +1,15 @@
+schema Pricing
+
+entity Product {
+    product_id : uuid primary
+    base_price : decimal not null
+    quantity : integer not null
+    is_premium : bool not null
+    discount_rate : decimal not null
+    
+    assert base_price > 0
+    assert quantity >= 0
+    assert discount_rate >= 0 AND discount_rate <= 1
+    assert IF is_premium THEN base_price > 100 OTHERWISE base_price >= 0
+    assert IF quantity > 10 THEN discount_rate > 0 OTHERWISE discount_rate >= 0
+}

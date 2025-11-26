@@ -2,15 +2,12 @@
 #include "../../../support/logging/Logger.h"
 #include "../SymbolTable.h"
 
-
 static Logger *_logger = NULL;
 
 static void initializeLogger() {
   if (!_logger)
     _logger = createLogger("TypeInference");
 }
-
-static TypeKind inferLiteralType(Literal *lit);
 
 bool isNumeric(TypeKind k) { return k == TYPE_INTEGER || k == TYPE_DECIMAL; }
 
@@ -37,7 +34,7 @@ bool isComparable(TypeKind L, TypeKind R) {
   return false;
 }
 
-static TypeKind inferLiteralType(Literal *lit) {
+TypeKind inferLiteralType(Literal *lit) {
   if (!lit)
     return TYPE_ERROR;
 

@@ -1,0 +1,8 @@
+schema Company
+
+entity Product {
+    pid  : uuid primary
+    price : decimal
+    discount : decimal
+    final_price : decimal derived
+}
