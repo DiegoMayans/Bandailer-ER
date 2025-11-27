@@ -43,7 +43,16 @@ const int main(const int length, const char **arguments) {
         executeSemanticAnalysis(&compilerState);
     if (computationResult == SEMANTIC_OK) {
       logInformation(logger, "The computation phase completed successfully.");
-      generateGraphviz(program, "output.dot");
+
+      const char *dotFile = "output.dot";
+      generateGraphviz(program, dotFile);
+
+      const char *imgFile = "output.png";
+      bool imgGenStatus = generateImageFromDot(dotFile, imgFile, "png");
+
+      if (imgGenStatus) {
+        logInformation(logger, "Visualization ready at: %s", imgFile);
+      }
     } else {
       logError(logger, "The computation phase rejects the input program.");
       compilationStatus = FAILED;

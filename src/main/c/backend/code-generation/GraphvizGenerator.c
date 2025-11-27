@@ -481,3 +481,39 @@ bool generateGraphviz(Program *program, const char *outputFilename) {
                  outputFilename);
   return true;
 }
+
+bool generateImageFromDot(const char *dotFilename,
+                          const char *outputImageFilename, const char *format) {
+  if (!dotFilename || !outputImageFilename || !format) {
+    logError(_logger, "Invalid arguments for image generation.");
+    return false;
+  }
+
+  logDebugging(_logger, "Executing Graphviz command to generate %s...", format);
+
+  // Uses dot command to generate image from DOT file.
+  char command[1024];
+
+  int wrote = snprintf(command, sizeof(command), "dot -T%s %s -o %s", format,
+                       dotFilename, outputImageFilename);
+
+  if (wrote < 0 || wrote >= sizeof(command)) {
+    logError(_logger, "Command string too long or encoding error.");
+    return false;
+  }
+
+  logDebugging(_logger, "System command: %s", command);
+
+  int result = system(command);
+
+  if (result != 0) {
+    logError(_logger, "Graphviz command failed. 'dot' might not be installed "
+                      "or not in PATH.");
+    logError(_logger, "Command returned code: %d", result);
+    return false;
+  }
+
+  logInformation(_logger, "Image generated successfully: %s",
+                 outputImageFilename);
+  return true;
+}

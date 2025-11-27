@@ -10,14 +10,11 @@
 /** Initialize module's internal state. */
 ModuleDestructor initializeGraphvizGeneratorModule();
 
-/**
- * Generates a Graphviz DOT file from the program AST.
- *
- * @param program The program AST containing schemas, entities, and
- * relationships
- * @param outputFilename The path to the output .dot file
- * @return true if generation succeeded, false otherwise
- */
+// Generates a Graphviz DOT file from the program AST.
 bool generateGraphviz(Program *program, const char *outputFilename);
+
+// Generates an image from a Graphviz DOT file.
+bool generateImageFromDot(const char *dotFilename, const char *outputFilename,
+                          const char *format);
 
 #endif
