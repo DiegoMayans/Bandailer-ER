@@ -12,3 +12,8 @@ entity Order {
     order_date : date not null
 }
 
+entity Customer {
+    customer_id : uuid primary
+    name : string not null
+}
+

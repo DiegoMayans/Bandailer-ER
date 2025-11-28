@@ -1,3 +1,4 @@
+#include "../ValidationConstants.h"
 #include "RelationshipParticipantRules.h"
 #include "../../../support/logging/Logger.h"
 #include "../SymbolTable.h"
@@ -48,7 +49,7 @@ bool validateUniqueParticipants(ValidationContext *ctx,
   }
 
   bool ok = true;
-  const int MAX_PARTICIPANTS = 64;
+  const int MAX_PARTICIPANTS = MAX_RELATIONSHIP_PARTICIPANTS;
   char *seen[MAX_PARTICIPANTS];
   int count = 0;
 

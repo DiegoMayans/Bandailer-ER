@@ -1,3 +1,4 @@
+#include "../ValidationConstants.h"
 #include "InheritanceRules.h"
 #include "../../../support/logging/Logger.h"
 #include "../SymbolTable.h"
@@ -43,7 +44,6 @@ bool validateInheritanceCycles(ValidationContext *ctx, Entity *entity) {
 
   // Use a simple counter to detect cycles - if we traverse more entities
   // than exist in the schema, we must have a cycle
-  const int MAX_INHERITANCE_DEPTH = 100;
   int depth = 0;
 
   const char *currentName = entity->parent;
@@ -95,7 +95,7 @@ bool validateInheritanceAttributeRedefinition(ValidationContext *ctx,
   SymbolTable *symbols = (SymbolTable *)ctx->compilerState->symbolTable;
   bool ok = true;
 
-  // Collect all attribute names from the current entity
+  // Check each attribute in the current entity
   for (AttributeList *attrList = entity->attributes; attrList != NULL;
        attrList = attrList->next) {
     Attribute *attr = attrList->attribute;

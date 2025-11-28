@@ -1,3 +1,4 @@
+#include "../ValidationConstants.h"
 #include "WeakEntityRules.h"
 #include "../../../support/logging/Logger.h"
 #include <string.h>
@@ -31,7 +32,7 @@ bool validateWeakEntityRelationships(ValidationContext *ctx, Entity *entity) {
   bool ok = true;
 
   // Collect all entities referenced in the primary key
-  const int MAX_REFERENCED_ENTITIES = 32;
+  const int MAX_REFERENCED_ENTITIES = MAX_WEAK_ENTITY_REFERENCES;
   char *referencedEntities[MAX_REFERENCED_ENTITIES];
   int refCount = 0;
 

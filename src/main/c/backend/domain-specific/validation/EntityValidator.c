@@ -35,9 +35,6 @@ static bool validateSingleEntity(ValidationContext *ctx, Entity *entity) {
   ok &= validateDefaultModifierTypes(ctx, entity);
   ok &= validatePrimaryModifierTypes(ctx, entity);
 
-  // 5. Assertions validations
-  // ok &= validateEntityAssertions(ctx, entity);
-
   return ok;
 }
 

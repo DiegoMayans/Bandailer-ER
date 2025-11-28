@@ -1,4 +1,5 @@
 #include "GraphvizGenerator.h"
+#include "../domain-specific//SymbolTable.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -99,128 +100,11 @@ static bool hasModifier(ModifierList *modifiers, ModifierType type) {
 }
 
 // Converts an expression AST to a string representation.
-static char *expressionToString(Expression *expr) {
-  if (!expr)
-    return strdup("");
-
-  char buffer[512];
-  char *left, *right, *operand;
-
-  switch (expr->type) {
-  case LITERAL_EXPR:
-    if (expr->literal) {
-      switch (expr->literal->type) {
-      case INTEGER_LITERAL:
-        snprintf(buffer, sizeof(buffer), "%d", expr->literal->integer);
-        break;
-      case DECIMAL_LITERAL:
-        snprintf(buffer, sizeof(buffer), "%.2f", expr->literal->decimal);
-        break;
-      case STRING_LITERAL:
-        snprintf(buffer, sizeof(buffer), "\\\"%s\\\"", expr->literal->string);
-        break;
-      case BOOLEAN_LITERAL:
-        snprintf(buffer, sizeof(buffer), "%s",
-                 expr->literal->boolean ? "true" : "false");
-        break;
-      default:
-        snprintf(buffer, sizeof(buffer), "?");
-      }
-    }
-    return strdup(buffer);
-
-  case IDENTIFIER_EXPR:
-    return strdup(expr->identifier ? expr->identifier : "?");
-
-  case ARITHMETIC_EXPR:
-    left = expressionToString(expr->arithmetic.left);
-    right = expressionToString(expr->arithmetic.right);
-    switch (expr->arithmetic.arithmeticOp) {
-    case ADDITION:
-      snprintf(buffer, sizeof(buffer), "(%s + %s)", left, right);
-      break;
-    case SUBTRACTION:
-      snprintf(buffer, sizeof(buffer), "(%s - %s)", left, right);
-      break;
-    case MULTIPLICATION:
-      snprintf(buffer, sizeof(buffer), "(%s * %s)", left, right);
-      break;
-    case DIVISION:
-      snprintf(buffer, sizeof(buffer), "(%s / %s)", left, right);
-      break;
-    }
-    free(left);
-    free(right);
-    return strdup(buffer);
-
-  case RELATIONAL_EXPR:
-    left = expressionToString(expr->relational.left);
-    right = expressionToString(expr->relational.right);
-    switch (expr->relational.relationalOp) {
-    case EQUAL:
-      snprintf(buffer, sizeof(buffer), "%s == %s", left, right);
-      break;
-    case NOT_EQUAL:
-      snprintf(buffer, sizeof(buffer), "%s != %s", left, right);
-      break;
-    case GREATER:
-      snprintf(buffer, sizeof(buffer), "%s \\> %s", left, right);
-      break;
-    case LESS:
-      snprintf(buffer, sizeof(buffer), "%s \\< %s", left, right);
-      break;
-    case GREATER_EQUAL:
-      snprintf(buffer, sizeof(buffer), "%s \\>= %s", left, right);
-      break;
-    case LESS_EQUAL:
-      snprintf(buffer, sizeof(buffer), "%s \\<= %s", left, right);
-      break;
-    }
-    free(left);
-    free(right);
-    return strdup(buffer);
-
-  case LOGICAL_EXPR:
-    left = expressionToString(expr->logical.left);
-    right = expressionToString(expr->logical.right);
-    switch (expr->logical.logicalOp) {
-    case AND:
-      snprintf(buffer, sizeof(buffer), "%s \\&\\& %s", left, right);
-      break;
-    case OR:
-      snprintf(buffer, sizeof(buffer), "%s || %s", left, right);
-      break;
-    }
-    free(left);
-    free(right);
-    return strdup(buffer);
-
-  case LOGICAL_NOT_EXPR:
-    operand = expressionToString(expr->logicalNot.operand);
-    snprintf(buffer, sizeof(buffer), "!%s", operand);
-    free(operand);
-    return strdup(buffer);
-
-  case CONDITIONAL_EXPR:
-    left = expressionToString(expr->conditional.condition);
-    right = expressionToString(expr->conditional.thenExpr);
-    operand = expressionToString(expr->conditional.elseExpr);
-    snprintf(buffer, sizeof(buffer), "%s ? %s : %s", left, right, operand);
-    free(left);
-    free(right);
-    free(operand);
-    return strdup(buffer);
-
-  case PARENTHESIZED_EXPR:
-    operand = expressionToString(expr->parenthesized.expression);
-    snprintf(buffer, sizeof(buffer), "(%s)", operand);
-    free(operand);
-    return strdup(buffer);
-
-  default:
-    return strdup("?");
-  }
-}
+typedef struct {
+  char *data;
+  size_t length;
+  size_t capacity;
+} StringBuilder;
 
 // Helper to check if an attribute is in the PRIMARY(...) declaration
 static bool isAttributeInPrimaryKey(Entity *entity, const char *attrName) {
@@ -532,4 +416,202 @@ bool generateImageFromDot(const char *dotFilename,
   logInformation(_logger, "Image generated successfully: %s",
                  outputImageFilename);
   return true;
+}
+
+/* STRING BUILDER FUNCTIONS */
+
+static void sb_init(StringBuilder *sb) {
+  sb->capacity = 256;
+  sb->length = 0;
+  sb->data = malloc(sb->capacity);
+  if (sb->data)
+    sb->data[0] = '\0';
+}
+
+static void sb_append(StringBuilder *sb, const char *str) {
+  if (!sb->data || !str)
+    return;
+  size_t len = strlen(str);
+  if (sb->length + len >= sb->capacity) {
+    size_t new_capacity = sb->capacity * 2;
+    if (new_capacity < sb->length + len + 1)
+      new_capacity = sb->length + len + 1;
+    char *new_data = realloc(sb->data, new_capacity);
+    if (!new_data)
+      return; // Allocation failed
+    sb->data = new_data;
+    sb->capacity = new_capacity;
+  }
+  strcpy(sb->data + sb->length, str);
+  sb->length += len;
+}
+
+static void sb_printf(StringBuilder *sb, const char *format, ...) {
+  if (!sb->data)
+    return;
+  va_list args;
+  va_start(args, format);
+
+  char temp[128];
+  int len = vsnprintf(temp, sizeof(temp), format, args);
+  va_end(args);
+
+  if (len < 0)
+    return;
+
+  if ((size_t)len < sizeof(temp)) { // If it fits in temp, append it
+    sb_append(sb, temp);
+  } else { // If it's larger, we need to allocate enough space
+    char *dyn_buf = malloc(len + 1);
+    if (dyn_buf) {
+      va_start(args, format);
+      vsnprintf(dyn_buf, len + 1, format, args);
+      va_end(args);
+      sb_append(sb, dyn_buf);
+      free(dyn_buf);
+    }
+  }
+}
+
+static char *sb_tostring(StringBuilder *sb) {
+  if (!sb->data)
+    return strdup("");
+  return strdup(sb->data);
+}
+
+static void sb_destroy(StringBuilder *sb) {
+  if (sb->data) {
+    free(sb->data);
+    sb->data = NULL;
+  }
+  sb->length = 0;
+  sb->capacity = 0;
+}
+
+static void buildExpressionString(StringBuilder *sb, Expression *expr) {
+  if (!expr)
+    return;
+
+  switch (expr->type) {
+  case LITERAL_EXPR:
+    if (expr->literal) {
+      switch (expr->literal->type) {
+      case INTEGER_LITERAL:
+        sb_printf(sb, "%d", expr->literal->integer);
+        break;
+      case DECIMAL_LITERAL:
+        sb_printf(sb, "%.2f", expr->literal->decimal);
+        break;
+      case STRING_LITERAL:
+        sb_append(sb, "\\\"");
+        sb_append(sb, expr->literal->string);
+        sb_append(sb, "\\\"");
+        break;
+      case BOOLEAN_LITERAL:
+        sb_append(sb, expr->literal->boolean ? "true" : "false");
+        break;
+      default:
+        sb_append(sb, "?");
+      }
+    }
+    break;
+
+  case IDENTIFIER_EXPR:
+    sb_append(sb, expr->identifier ? expr->identifier : "?");
+    break;
+
+  case ARITHMETIC_EXPR:
+    sb_append(sb, "(");
+    buildExpressionString(sb, expr->arithmetic.left);
+    switch (expr->arithmetic.arithmeticOp) {
+    case ADDITION:
+      sb_append(sb, " + ");
+      break;
+    case SUBTRACTION:
+      sb_append(sb, " - ");
+      break;
+    case MULTIPLICATION:
+      sb_append(sb, " * ");
+      break;
+    case DIVISION:
+      sb_append(sb, " / ");
+      break;
+    }
+    buildExpressionString(sb, expr->arithmetic.right);
+    sb_append(sb, ")");
+    break;
+
+  case RELATIONAL_EXPR:
+    buildExpressionString(sb, expr->relational.left);
+    switch (expr->relational.relationalOp) {
+    case EQUAL:
+      sb_append(sb, " == ");
+      break;
+    case NOT_EQUAL:
+      sb_append(sb, " != ");
+      break;
+    case GREATER:
+      sb_append(sb, " \\> ");
+      break;
+    case LESS:
+      sb_append(sb, " \\< ");
+      break;
+    case GREATER_EQUAL:
+      sb_append(sb, " \\>= ");
+      break;
+    case LESS_EQUAL:
+      sb_append(sb, " \\<= ");
+      break;
+    }
+    buildExpressionString(sb, expr->relational.right);
+    break;
+
+  case LOGICAL_EXPR:
+    buildExpressionString(sb, expr->logical.left);
+    switch (expr->logical.logicalOp) {
+    case AND:
+      sb_append(sb, " \\&\\& ");
+      break;
+    case OR:
+      sb_append(sb, " || ");
+      break;
+    }
+    buildExpressionString(sb, expr->logical.right);
+    break;
+
+  case LOGICAL_NOT_EXPR:
+    sb_append(sb, "!");
+    buildExpressionString(sb, expr->logicalNot.operand);
+    break;
+
+  case CONDITIONAL_EXPR:
+    buildExpressionString(sb, expr->conditional.condition);
+    sb_append(sb, " ? ");
+    buildExpressionString(sb, expr->conditional.thenExpr);
+    sb_append(sb, " : ");
+    buildExpressionString(sb, expr->conditional.elseExpr);
+    break;
+
+  case PARENTHESIZED_EXPR:
+    sb_append(sb, "(");
+    buildExpressionString(sb, expr->parenthesized.expression);
+    sb_append(sb, ")");
+    break;
+
+  default:
+    sb_append(sb, "?");
+  }
+}
+
+// Converts an expression AST to a string representation.
+static char *expressionToString(Expression *expr) {
+  if (!expr)
+    return strdup("");
+
+  StringBuilder sb;
+  sb_init(&sb);
+  buildExpressionString(&sb, expr);
+  char *result = sb_tostring(&sb);
+  sb_destroy(&sb);
+  return result;
 }

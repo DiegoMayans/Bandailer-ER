@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define HASH_TABLE_SIZE 128
+
 typedef struct EntitySymbol {
     char* name;
     Entity* entity;
@@ -15,34 +17,61 @@ typedef struct RelationshipSymbol {
 } RelationshipSymbol;
 
 struct SymbolTable {
-    EntitySymbol* entities;
-    RelationshipSymbol* relationships;
+    EntitySymbol* entities[HASH_TABLE_SIZE];
+    RelationshipSymbol* relationships[HASH_TABLE_SIZE];
 };
+
+/**
+ * Hash function (djb2 algorithm)
+ * 
+ * https://gist.github.com/MohamedTaha98/ccdf734f13299efb73ff0b12f7ce429f
+ */
+static unsigned int hash(const char* str) {
+    unsigned int hash = 5381;
+    int c;
+    
+    while ((c = *str++)) {
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+    }
+    
+    return hash % HASH_TABLE_SIZE;
+}
 
 SymbolTable* createSymbolTable(void) {
     SymbolTable* table = (SymbolTable*)malloc(sizeof(SymbolTable));
-    table->entities = NULL;
-    table->relationships = NULL;
+    
+    /* Initialize all buckets to NULL */
+    for (int i = 0; i < HASH_TABLE_SIZE; i++) {
+        table->entities[i] = NULL;
+        table->relationships[i] = NULL;
+    }
+    
     return table;
 }
 
 void destroySymbolTable(SymbolTable* table) {
     if (!table) return;
     
-    EntitySymbol* e = table->entities;
-    while (e) {
-        EntitySymbol* next = e->next;
-        free(e->name);
-        free(e);
-        e = next;
+    /* Free all entity buckets */
+    for (int i = 0; i < HASH_TABLE_SIZE; i++) {
+        EntitySymbol* e = table->entities[i];
+        while (e) {
+            EntitySymbol* next = e->next;
+            free(e->name);
+            free(e);
+            e = next;
+        }
     }
     
-    RelationshipSymbol* r = table->relationships;
-    while (r) {
-        RelationshipSymbol* next = r->next;
-        free(r->name);
-        free(r);
-        r = next;
+    /* Free all relationship buckets */
+    for (int i = 0; i < HASH_TABLE_SIZE; i++) {
+        RelationshipSymbol* r = table->relationships[i];
+        while (r) {
+            RelationshipSymbol* next = r->next;
+            free(r->name);
+            free(r);
+            r = next;
+        }
     }
     
     free(table);
@@ -53,16 +82,20 @@ bool addEntity(SymbolTable* table, const char* name, Entity* entity) {
         return false;
     }
     
+    unsigned int bucket = hash(name);
+    
     EntitySymbol* symbol = (EntitySymbol*)malloc(sizeof(EntitySymbol));
     symbol->name = strdup(name);
     symbol->entity = entity;
-    symbol->next = table->entities;
-    table->entities = symbol;
+    symbol->next = table->entities[bucket];
+    table->entities[bucket] = symbol;
     return true;
 }
 
 Entity* lookupEntity(SymbolTable* table, const char* name) {
-    EntitySymbol* current = table->entities;
+    unsigned int bucket = hash(name);
+    EntitySymbol* current = table->entities[bucket];
+    
     while (current) {
         if (strcmp(current->name, name) == 0) {
             return current->entity;
@@ -81,16 +114,20 @@ bool addRelationship(SymbolTable* table, const char* name, Relationship* rel) {
         return false;
     }
     
+    unsigned int bucket = hash(name);
+    
     RelationshipSymbol* symbol = (RelationshipSymbol*)malloc(sizeof(RelationshipSymbol));
     symbol->name = strdup(name);
     symbol->relationship = rel;
-    symbol->next = table->relationships;
-    table->relationships = symbol;
+    symbol->next = table->relationships[bucket];
+    table->relationships[bucket] = symbol;
     return true;
 }
 
 Relationship* lookupRelationship(SymbolTable* table, const char* name) {
-    RelationshipSymbol* current = table->relationships;
+    unsigned int bucket = hash(name);
+    RelationshipSymbol* current = table->relationships[bucket];
+    
     while (current) {
         if (strcmp(current->name, name) == 0) {
             return current->relationship;
@@ -106,21 +143,29 @@ bool hasRelationship(SymbolTable* table, const char* name) {
 
 int getEntityCount(SymbolTable* table) {
     int count = 0;
-    EntitySymbol* e = table->entities;
-    while (e) {
-        count++;
-        e = e->next;
+    
+    for (int i = 0; i < HASH_TABLE_SIZE; i++) {
+        EntitySymbol* e = table->entities[i];
+        while (e) {
+            count++;
+            e = e->next;
+        }
     }
+    
     return count;
 }
 
 int getRelationshipCount(SymbolTable* table) {
     int count = 0;
-    RelationshipSymbol* r = table->relationships;
-    while (r) {
-        count++;
-        r = r->next;
+    
+    for (int i = 0; i < HASH_TABLE_SIZE; i++) {
+        RelationshipSymbol* r = table->relationships[i];
+        while (r) {
+            count++;
+            r = r->next;
+        }
     }
+    
     return count;
 }
 

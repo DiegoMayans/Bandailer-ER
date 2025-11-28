@@ -1,3 +1,4 @@
+#include "../ValidationConstants.h"
 #include "EntityPKRules.h"
 #include "../../../support/logging/Logger.h"
 #include "../SymbolTable.h"
@@ -154,7 +155,7 @@ bool validateEntityPrimaryKey(ValidationContext *ctx, Entity *entity) {
 
   bool ok = true;
 
-  const int MAX_PK_ATTRS = 128;
+  const int MAX_PK_ATTRS = MAX_PRIMARY_KEY_ATTRIBUTES;
   char *seen[MAX_PK_ATTRS];
   int count = 0;
 
