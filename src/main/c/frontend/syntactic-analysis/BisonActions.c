@@ -39,6 +39,7 @@ Program *SchemaProgramSemanticAction(Schema *schema) {
   _logSyntacticAnalyzerAction(__FUNCTION__);
   Program *program = calloc(1, sizeof(Program));
   program->schema = schema;
+  program->schema_last = schema;
   _compilerState->abstractSyntaxtTree = program;
   return program;
 }
@@ -49,15 +50,9 @@ Program *AppendSchemaProgramSemanticAction(Program *program, Schema *schema) {
     return SchemaProgramSemanticAction(schema);
   }
 
-  Schema *current = program->schema;
-  if (current == NULL) {
-    program->schema = schema;
-  } else {
-    while (current->next != NULL) {
-      current = current->next;
-    }
-    current->next = schema;
-  }
+  program->schema_last->next = schema;
+  program->schema_last = schema;
+
   return program;
 }
 
@@ -84,12 +79,10 @@ Schema *AppendEntitySchemaBodySemanticAction(Schema *schema, Entity *entity) {
 
   if (schema->entities == NULL) {
     schema->entities = entity;
+    schema->entities_last = entity;
   } else {
-    Entity *current = schema->entities;
-    while (current->next != NULL) {
-      current = current->next;
-    }
-    current->next = entity;
+    schema->entities_last->next = entity;
+    schema->entities_last = entity;
   }
   return schema;
 }
@@ -103,19 +96,17 @@ Schema *AppendRelationshipSchemaBodySemanticAction(Schema *schema,
 
   if (schema->relationships == NULL) {
     schema->relationships = relationship;
+    schema->relationships_last = relationship;
   } else {
-    Relationship *current = schema->relationships;
-    while (current->next != NULL) {
-      current = current->next;
-    }
-    current->next = relationship;
+    schema->relationships_last->next = relationship;
+    schema->relationships_last = relationship;
   }
   return schema;
 }
 
 /* Entity actions */
 
-Entity *EntitySemanticAction(char *name, char *parent, Entity *body) {
+Entity *EntitySemanticAction(char *name, char *parent, Entity *body, bool isWeak) {
   _logSyntacticAnalyzerAction(__FUNCTION__);
   Entity *entity = body;
   if (entity == NULL) {
@@ -125,6 +116,7 @@ Entity *EntitySemanticAction(char *name, char *parent, Entity *body) {
   if (parent != NULL) {
     entity->parent = parent;
   }
+  entity->weak = isWeak;
   return entity;
 }
 
@@ -143,13 +135,11 @@ Entity *AppendAttributeEntityBodySemanticAction(Entity *entity,
   if (entity->attributes == NULL) {
     entity->attributes = calloc(1, sizeof(AttributeList));
     entity->attributes->attribute = attribute;
+    entity->attributes_last = entity->attributes;
   } else {
-    AttributeList *current = entity->attributes;
-    while (current->next != NULL) {
-      current = current->next;
-    }
-    current->next = calloc(1, sizeof(AttributeList));
-    current->next->attribute = attribute;
+    entity->attributes_last->next = calloc(1, sizeof(AttributeList));
+    entity->attributes_last->next->attribute = attribute;
+    entity->attributes_last = entity->attributes_last->next;
   }
   return entity;
 }
@@ -173,12 +163,10 @@ Entity *AppendAssertionEntityBodySemanticAction(Entity *entity,
 
   if (entity->assertions == NULL) {
     entity->assertions = assertion;
+    entity->assertions_last = assertion;
   } else {
-    Assertion *current = entity->assertions;
-    while (current->next != NULL) {
-      current = current->next;
-    }
-    current->next = assertion;
+    entity->assertions_last->next = assertion;
+    entity->assertions_last = assertion;
   }
   return entity;
 }
@@ -199,6 +187,7 @@ AttributeList *AttributeListSemanticAction(Attribute *attribute) {
   _logSyntacticAnalyzerAction(__FUNCTION__);
   AttributeList *list = calloc(1, sizeof(AttributeList));
   list->attribute = attribute;
+  list->last = list; 
   return list;
 }
 
@@ -209,12 +198,11 @@ AttributeList *AppendAttributeListSemanticAction(AttributeList *list,
     return AttributeListSemanticAction(attribute);
   }
 
-  AttributeList *current = list;
-  while (current->next != NULL) {
-    current = current->next;
-  }
-  current->next = calloc(1, sizeof(AttributeList));
-  current->next->attribute = attribute;
+  AttributeList *newNode = calloc(1, sizeof(AttributeList));
+  newNode->attribute = attribute;
+  
+  list->last->next = newNode;
+  list->last = newNode;
   return list;
 }
 
@@ -250,14 +238,12 @@ ModifierList *AppendModifierSemanticAction(ModifierList *list,
   newNode->modifier = modifier;
 
   if (list == NULL) {
+    newNode->last = newNode;
     return newNode;
   }
 
-  ModifierList *current = list;
-  while (current->next != NULL) {
-    current = current->next;
-  }
-  current->next = newNode;
+  list->last->next = newNode;
+  list->last = newNode; 
   return list;
 }
 
@@ -291,7 +277,7 @@ QualifiedIdentifier *CreateQualifiedIdentifier(char *entity, char *attribute) {
   _logSyntacticAnalyzerAction(__FUNCTION__);
   QualifiedIdentifier *qid = calloc(1, sizeof(QualifiedIdentifier));
 
-  qid->entity = entity;
+  qid->entity = entity ? entity : NULL;
   qid->attribute = attribute;
   return qid;
 }
@@ -301,6 +287,7 @@ QualifiedIdentifierListSemanticAction(QualifiedIdentifier *qid) {
   _logSyntacticAnalyzerAction(__FUNCTION__);
   QualifiedIdentifierList *list = calloc(1, sizeof(QualifiedIdentifierList));
   list->qid = qid;
+  list->last = list;  
   return list;
 }
 
@@ -311,12 +298,11 @@ AppendQualifiedIdentifierListSemanticAction(QualifiedIdentifierList *list,
   if (list == NULL)
     return QualifiedIdentifierListSemanticAction(qid);
 
-  QualifiedIdentifierList *cur = list;
-  while (cur->next != NULL)
-    cur = cur->next;
-
-  cur->next = calloc(1, sizeof(QualifiedIdentifierList));
-  cur->next->qid = qid;
+  QualifiedIdentifierList *newNode = calloc(1, sizeof(QualifiedIdentifierList));
+  newNode->qid = qid;
+  
+  list->last->next = newNode;
+  list->last = newNode;  
   return list;
 }
 
@@ -341,6 +327,9 @@ Relationship *RelationshipSemanticAction(char *name,
   }
   relationship->name = name;
   relationship->participants = participants;
+  if (participants != NULL) {
+    relationship->participants_last = participants->last;
+  }
   return relationship;
 }
 
@@ -348,6 +337,7 @@ ParticipantList *ParticipantListSemanticAction(Participant *participant) {
   _logSyntacticAnalyzerAction(__FUNCTION__);
   ParticipantList *list = calloc(1, sizeof(ParticipantList));
   list->participant = participant;
+  list->last = list; 
   return list;
 }
 
@@ -358,12 +348,12 @@ ParticipantList *AppendParticipantListSemanticAction(ParticipantList *list,
     return ParticipantListSemanticAction(participant);
   }
 
-  ParticipantList *current = list;
-  while (current->next != NULL) {
-    current = current->next;
-  }
-  current->next = calloc(1, sizeof(ParticipantList));
-  current->next->participant = participant;
+  // Use tail pointer for O(1) append
+  ParticipantList *newNode = calloc(1, sizeof(ParticipantList));
+  newNode->participant = participant;
+  
+  list->last->next = newNode;
+  list->last = newNode;  // Update tail pointer
   return list;
 }
 
@@ -400,6 +390,9 @@ Relationship *RelationshipBodySemanticAction(AttributeList *attributes) {
   _logSyntacticAnalyzerAction(__FUNCTION__);
   Relationship *relationship = calloc(1, sizeof(Relationship));
   relationship->attributes = attributes;
+  if (attributes != NULL) {
+    relationship->attributes_last = attributes->last;
+  }
   return relationship;
 }
 

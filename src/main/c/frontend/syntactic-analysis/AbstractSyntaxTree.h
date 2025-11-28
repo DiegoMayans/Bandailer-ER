@@ -110,12 +110,15 @@ typedef enum ParticipationType {
  */
 struct Program {
   Schema *schema;
+  Schema *schema_last;
 };
 
 struct Schema {
   char *name;
   Entity *entities;
+  Entity *entities_last;
   Relationship *relationships;
+  Relationship *relationships_last;
   Schema *next;
 };
 
@@ -124,15 +127,19 @@ struct Entity {
   char *parent; // For inheritance
   bool weak;
   AttributeList *attributes;
+  AttributeList *attributes_last;
   PrimaryKey *primaryKey;
   Assertion *assertions;
+  Assertion *assertions_last;
   Entity *next;
 };
 
 struct Relationship {
   char *name;
   ParticipantList *participants;
+  ParticipantList *participants_last;
   AttributeList *attributes;
+  AttributeList *attributes_last;
   Relationship *next;
 };
 
@@ -146,6 +153,7 @@ struct Attribute {
 struct AttributeList {
   Attribute *attribute;
   AttributeList *next;
+  AttributeList *last;  // Tail pointer for O(1) append
 };
 
 struct RelationshipList {
@@ -163,6 +171,7 @@ struct Participant {
 struct ParticipantList {
   Participant *participant;
   ParticipantList *next;
+  ParticipantList *last;  // Tail pointer for O(1) append
 };
 
 struct Expression {
@@ -223,6 +232,7 @@ struct Modifier {
 struct ModifierList {
   Modifier *modifier;
   ModifierList *next;
+  ModifierList *last;  // Tail pointer for O(1) append
 };
 
 struct PrimaryKey {
@@ -251,6 +261,7 @@ struct QualifiedIdentifier {
 struct QualifiedIdentifierList {
   QualifiedIdentifier *qid;
   struct QualifiedIdentifierList *next;
+  struct QualifiedIdentifierList *last;  // Tail pointer for O(1) append
 };
 
 /**

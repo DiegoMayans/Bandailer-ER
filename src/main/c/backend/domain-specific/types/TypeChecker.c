@@ -80,16 +80,6 @@ TypeCheckStatus validateAllTypes(Program *program, SymbolTable *symbolTable) {
           }
         }
       }
-
-      // TODO: Implementar asserts en relaciones
-      // for (Assertion* as = r->assertions; as; as = as->next) {
-      //     TypeKind condType = inferExpressionType(as->condition,
-      //     createRelationshipScope(symbolTable, r)); if (condType !=
-      //     TYPE_BOOL) {
-      //         logError(_logger, "Assertion condition must be boolean in
-      //         relationship '%s'", r->name); hasErrors = true;
-      //     }
-      // }
     }
   }
 

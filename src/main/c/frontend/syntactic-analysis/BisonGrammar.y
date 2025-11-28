@@ -155,13 +155,13 @@ schema_body:
 
 entity_decl:
       ENTITY IDENTIFIER OPEN_BRACE entity_body CLOSE_BRACE
-        { $$ = EntitySemanticAction($2, NULL, $4); }
+        { $$ = EntitySemanticAction($2, NULL, $4, false); }
     | ENTITY IDENTIFIER COLON IDENTIFIER OPEN_BRACE entity_body CLOSE_BRACE
-        { $$ = EntitySemanticAction($2, $4, $6); } /* inheritance */
+        { $$ = EntitySemanticAction($2, $4, $6, false); } /* inheritance */
     | WEAK ENTITY IDENTIFIER OPEN_BRACE entity_body CLOSE_BRACE
-        { $$ = EntitySemanticAction($3, NULL, $5); $$->weak = true; }
+        { $$ = EntitySemanticAction($3, NULL, $5, true); }
     | WEAK ENTITY IDENTIFIER COLON IDENTIFIER OPEN_BRACE entity_body CLOSE_BRACE
-        { $$ = EntitySemanticAction($3, $5, $7); $$->weak = true; } 
+        { $$ = EntitySemanticAction($3, $5, $7, true); } 
     ;
 
 entity_body:
@@ -267,17 +267,17 @@ expression:
       literal                                 { $$ = LiteralExpressionSemanticAction($1); }
     | IDENTIFIER                              { $$ = IdentifierExpressionSemanticAction($1); }
     | expression OP_ADD expression            { $$ = ArithmeticExpressionSemanticAction($1, $3, ADDITION); }
-    | expression OP_SUB expression            { $$ = ArithmeticExpressionSemanticAction($1, $3, SUBTRACTION); }
-    | expression OP_MUL expression            { $$ = ArithmeticExpressionSemanticAction($1, $3, MULTIPLICATION); }
+    | expression OP_AND expression            { $$ = LogicalExpressionSemanticAction($1, $3, AND); }
     | expression OP_DIV expression            { $$ = ArithmeticExpressionSemanticAction($1, $3, DIVISION); }
     | expression OP_EQ expression             { $$ = RelationalExpressionSemanticAction($1, $3, EQUAL); }
-    | expression OP_NEQ expression            { $$ = RelationalExpressionSemanticAction($1, $3, NOT_EQUAL); }
     | expression OP_GT expression             { $$ = RelationalExpressionSemanticAction($1, $3, GREATER); }
-    | expression OP_LT expression             { $$ = RelationalExpressionSemanticAction($1, $3, LESS); }
     | expression OP_GTE expression            { $$ = RelationalExpressionSemanticAction($1, $3, GREATER_EQUAL); }
+    | expression OP_LT expression             { $$ = RelationalExpressionSemanticAction($1, $3, LESS); }
     | expression OP_LTE expression            { $$ = RelationalExpressionSemanticAction($1, $3, LESS_EQUAL); }
-    | expression OP_AND expression            { $$ = LogicalExpressionSemanticAction($1, $3, AND); }
+    | expression OP_MUL expression            { $$ = ArithmeticExpressionSemanticAction($1, $3, MULTIPLICATION); }
+    | expression OP_NEQ expression            { $$ = RelationalExpressionSemanticAction($1, $3, NOT_EQUAL); }
     | expression OP_OR expression             { $$ = LogicalExpressionSemanticAction($1, $3, OR); }
+    | expression OP_SUB expression            { $$ = ArithmeticExpressionSemanticAction($1, $3, SUBTRACTION); }
     | OP_NOT expression                       { $$ = LogicalNotExpressionSemanticAction($2); }
     | IF expression THEN expression OTHERWISE expression %prec IFX
                                               { $$ = ConditionalExpressionSemanticAction($2, $4, $6); }

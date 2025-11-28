@@ -437,8 +437,9 @@ bool generateGraphviz(Program *program, const char *outputFilename) {
     return false;
   }
 
-  Schema *schema = program->schema;
-  if (!schema) {
+  Schema *headSchema = program->schema;
+
+  if (!headSchema) {
     logWarning(_logger, "No schema found in program");
     writeHeader(f, "Empty");
     writeFooter(f);
@@ -446,35 +447,50 @@ bool generateGraphviz(Program *program, const char *outputFilename) {
     return true;
   }
 
-  writeHeader(f, schema->name);
+  writeHeader(f, "GlobalSystem");
 
-  // 1. Generate entity nodes
-  logDebugging(_logger, "Generating entity nodes...");
-  for (Entity *e = schema->entities; e != NULL; e = e->next) {
-    writeEntity(f, e);
+  Schema *currentSchema = headSchema;
+  int schemaIndex = 0;
+
+  while (currentSchema != NULL) {
+      logDebugging(_logger, "Processing schema: %s", currentSchema->name);
+
+      // use 'subgraph cluster_X' for multiple schema handling
+      fprintf(f, "\n    subgraph cluster_%d {\n", schemaIndex);
+      fprintf(f, "        style=filled;\n");
+      fprintf(f, "        color=white;\n");
+      fprintf(f, "        node [style=filled, fillcolor=white];\n");
+
+      // 1. Generate entity nodes
+      for (Entity *e = currentSchema->entities; e != NULL; e = e->next) {
+        writeEntity(f, e);
+      }
+
+      fprintf(f, "\n");
+
+      // 2. Generate relationship nodes and edges
+      for (Relationship *r = currentSchema->relationships; r != NULL; r = r->next) {
+        writeRelationship(f, r, currentSchema);
+      }
+
+      fprintf(f, "\n");
+
+      // 3. Generate inheritance edges
+      for (Entity *e = currentSchema->entities; e != NULL; e = e->next) {
+        if (e->parent) {
+          fprintf(f, "    %s -> %s [arrowhead=onormal, label=\"is-a\"];\n", e->name,
+                  e->parent);
+        }
+      }
+
+      fprintf(f, "    }\n"); // Cerramos el subgraph
+
+      // Avanzamos al siguiente esquema en la lista enlazada
+      currentSchema = currentSchema->next;
+      schemaIndex++;
   }
 
-  fprintf(f, "\n");
-
-  // 2. Generate relationship nodes and edges
-  logDebugging(_logger, "Generating relationship nodes...");
-  for (Relationship *r = schema->relationships; r != NULL; r = r->next) {
-    writeRelationship(f, r, schema);
-  }
-
-  fprintf(f, "\n");
-
-  // 3. Generate inheritance edges
-  logDebugging(_logger, "Generating inheritance edges...");
-  for (Entity *e = schema->entities; e != NULL; e = e->next) {
-    if (e->parent) {
-      // Arrow from child to parent with special styling
-      fprintf(f, "    %s -> %s [arrowhead=onormal, label=\"is-a\"];\n", e->name,
-              e->parent);
-    }
-  }
-
-  writeFooter(f);
+  writeFooter(f); // Cerramos el digraph global
   fclose(f);
 
   logInformation(_logger, "Successfully generated Graphviz DOT file: %s",

@@ -1,4 +1,3 @@
-#include "backend/code-generation/Generator.h"
 #include "backend/code-generation/GraphvizGenerator.h"
 #include "backend/domain-specific/SemanticAnalyzer.h"
 #include "backend/domain-specific/SymbolTable.h"

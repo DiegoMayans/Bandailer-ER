@@ -25,7 +25,7 @@ Schema * AppendEntitySchemaBodySemanticAction(Schema * schema, Entity * entity);
 Schema * AppendRelationshipSchemaBodySemanticAction(Schema * schema, Relationship * relationship);
 
 /* Entity actions */
-Entity * EntitySemanticAction(char * name, char * parent, Entity * body);
+Entity *EntitySemanticAction(char *name, char *parent, Entity *body, bool isWeak);
 Entity * EmptyEntityBodySemanticAction();
 Entity * AppendAttributeEntityBodySemanticAction(Entity * entity, Attribute * attribute);
 Entity * SetPrimaryKeyEntityBodySemanticAction(Entity * entity, PrimaryKey * primaryKey);

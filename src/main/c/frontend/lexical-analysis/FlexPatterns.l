@@ -15,7 +15,10 @@ extern CompilationStatus IdentifierLexemeAction();
 extern CompilationStatus TypeLexemeAction(TokenLabel label);
 extern CompilationStatus OperatorLexemeAction(TokenLabel label);
 extern CompilationStatus SymbolLexemeAction(TokenLabel label);
-extern CompilationStatus LiteralLexemeAction(TokenLabel label);
+extern CompilationStatus IntegerLexemeAction();
+extern CompilationStatus DecimalLexemeAction();
+extern CompilationStatus StringLiteralLexemeAction();
+extern CompilationStatus BooleanLexemeAction(bool value);
 extern CompilationStatus EnterCommentLexemeAction(FlexContext context);
 extern CompilationStatus LeaveCommentLexemeAction();
 extern CompilationStatus IgnoredLexemeAction();
@@ -38,7 +41,6 @@ integer         {digit}+
 decimal         {digit}+"."{digit}+
 identifier      [A-Za-z_][A-Za-z0-9_]*
 string_literal  \"([^\"\\]|\\.)*\"
-bool_literal    (true|false)
 
 %%
 
@@ -96,10 +98,11 @@ bool_literal    (true|false)
 "["                     { return SymbolLexemeAction(OPEN_BRACKET); }
 "]"                     { return SymbolLexemeAction(CLOSE_BRACKET); }
 
-{integer}               { return LiteralLexemeAction(LIT_INTEGER); }
-{decimal}               { return LiteralLexemeAction(LIT_DECIMAL); }
-{string_literal}        { return LiteralLexemeAction(LIT_STRING); }
-{bool_literal}          { return LiteralLexemeAction(LIT_BOOL); }
+{integer}               { return IntegerLexemeAction(); }
+{decimal}               { return DecimalLexemeAction(); }
+{string_literal}        { return StringLiteralLexemeAction(); }
+"true"                  { return BooleanLexemeAction(true); }
+"false"                 { return BooleanLexemeAction(false); }
 
 {identifier}            { return IdentifierLexemeAction(); }
 
