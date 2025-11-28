@@ -8,34 +8,22 @@
 
 #define TYPE_ERROR (-1)
 
-/**
- * Infers the type of an expression within a given scope.
- * Returns the TypeKind of the expression or TYPE_ERROR if inference fails.
- */
+// Infers the type of an expression within a given scope.
 TypeKind inferExpressionType(Expression *expr, Scope scope);
 
+// Infers the type of a literal.
 TypeKind inferLiteralType(Literal *lit);
 
-/**
- * Checks if a type is numeric (INTEGER or DECIMAL).
- */
+// Checks if a type is numeric (INTEGER or DECIMAL).
 bool isNumeric(TypeKind k);
 
-/**
- * Checks if a type is boolean.
- */
+// Checks if a type is boolean.
 bool isBoolean(TypeKind k);
 
-/**
- * Checks if two types are comparable.
- * Same types are comparable, and numeric types are comparable with each other.
- */
+// Checks if two types are comparable.
 bool isComparable(TypeKind left, TypeKind right);
 
-/**
- * Coerces two numeric types to their common type.
- * Returns TYPE_ERROR if either type is not numeric.
- */
+// Coerces two numeric types to their common type.
 TypeKind coerceNumeric(TypeKind left, TypeKind right);
 
 #endif // TYPE_INFERENCE_H

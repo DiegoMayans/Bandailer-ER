@@ -151,7 +151,7 @@ struct Attribute {
 struct AttributeList {
   Attribute *attribute;
   AttributeList *next;
-  AttributeList *last;  // Tail pointer for O(1) append
+  AttributeList *last; 
 };
 
 struct RelationshipList {
@@ -169,7 +169,7 @@ struct Participant {
 struct ParticipantList {
   Participant *participant;
   ParticipantList *next;
-  ParticipantList *last;  // Tail pointer for O(1) append
+  ParticipantList *last; 
 };
 
 struct Expression {
@@ -230,7 +230,7 @@ struct Modifier {
 struct ModifierList {
   Modifier *modifier;
   ModifierList *next;
-  ModifierList *last;  // Tail pointer for O(1) append
+  ModifierList *last;  
 };
 
 struct PrimaryKey {
@@ -259,7 +259,7 @@ struct QualifiedIdentifier {
 struct QualifiedIdentifierList {
   QualifiedIdentifier *qid;
   struct QualifiedIdentifierList *next;
-  struct QualifiedIdentifierList *last;  // Tail pointer for O(1) append
+  struct QualifiedIdentifierList *last;
 };
 
 /**

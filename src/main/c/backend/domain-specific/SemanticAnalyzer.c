@@ -19,6 +19,7 @@ static bool buildSymbolTable(ValidationContext *ctx, Schema *schema) {
   while (entity) {
     if (!addEntity(symbols, entity->name, entity)) {
       logError(_logger, "Duplicate entity name: %s", entity->name);
+      ctx->hasErrors = true;
       ok = false;
     }
     entity = entity->next;
@@ -29,6 +30,7 @@ static bool buildSymbolTable(ValidationContext *ctx, Schema *schema) {
   while (rel) {
     if (!addRelationship(symbols, rel->name, rel)) {
       logError(_logger, "Duplicate relationship name: %s", rel->name);
+      ctx->hasErrors = true;
       ok = false;
     }
     rel = rel->next;
@@ -51,39 +53,23 @@ ComputationStatus executeSemanticAnalysis(CompilerState *state) {
   }
 
   ValidationContext ctx = {.compilerState = state,
-                           .currentSchema = program->schema,
-                           .currentEntity = NULL,
-                           .hasErrors = false
-                          };
+                           .hasErrors = false,
+                           .currentSchema = program->schema};
 
-  bool ok = true;
+  if (!buildSymbolTable(&ctx, program->schema)) {
+    return SEMANTIC_ERROR;
+  }
+  
+  validateAllTypes(&ctx);
+  validateEntities(&ctx);
+  validateRelationships(&ctx);
 
-  logInformation(_logger, "Starting semantic analysis...");
-
-  logDebugging(_logger, "Pass 1: Building symbol table...");
-  ok &= buildSymbolTable(&ctx, program->schema);
-
-  // Add type checking pass
-  logDebugging(_logger, "Pass 2: Type checking...");
-  TypeCheckStatus typeCheckResult =
-      validateAllTypes(program, (SymbolTable *)state->symbolTable);
-  ok &= (typeCheckResult == TYPECHECK_OK);
-
-  // Add entity validation pass
-  logDebugging(_logger, "Pass 3: Entity validation...");
-  ok &= validateEntities(&ctx);
-
-  // Add relationship validation pass
-  logDebugging(_logger, "Pass 4: Relationship validation...");
-  ok &= validateRelationships(&ctx);
-
-  if (ok) {
-    logInformation(_logger, "Semantic analysis completed successfully");
-  } else {
+  if (ctx.hasErrors) {
     logError(_logger, "Semantic analysis failed with errors");
+    return SEMANTIC_ERROR;
   }
 
-  return ok ? SEMANTIC_OK : SEMANTIC_ERROR;
+  return SEMANTIC_OK;
 }
 
 /** Shutdown module's internal state. */

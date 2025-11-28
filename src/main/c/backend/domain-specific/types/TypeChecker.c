@@ -10,16 +10,25 @@ static void initializeLogger() {
     _logger = createLogger("TypeChecker");
 }
 
-TypeCheckStatus validateAllTypes(Program *program, SymbolTable *symbolTable) {
+void validateAllTypes(ValidationContext *ctx) {
   initializeLogger();
 
-  if (!program || !program->schema) {
-    logError(_logger, "Program has no schema.");
-    return TYPECHECK_ERROR;
+  if (!ctx || !ctx->compilerState) {
+    logError(_logger, "Validation context or compiler state is missing.");
+    ctx->hasErrors = true;
+    return;
   }
 
-  bool hasErrors = false;
+  Program *program = ctx->compilerState->abstractSyntaxtTree;
+  if (!program || !program->schema) {
+    logError(_logger, "Program has no schema.");
+    ctx->hasErrors = true;
+    return;
+  }
+
+  SymbolTable *symbolTable = (SymbolTable *)ctx->compilerState->symbolTable;
   Schema *schema = program->schema;
+  bool ok = true;
 
   // Validate expressions in entities
   for (Entity *e = schema->entities; e; e = e->next) {
@@ -39,7 +48,8 @@ TypeCheckStatus validateAllTypes(Program *program, SymbolTable *symbolTable) {
             logError(_logger,
                      "Type mismatch in default value for attribute '%s'",
                      a->name);
-            hasErrors = true;
+            ctx->hasErrors = true;
+            ok = false;
           }
         }
       }
@@ -53,7 +63,8 @@ TypeCheckStatus validateAllTypes(Program *program, SymbolTable *symbolTable) {
         logError(_logger,
                  "Assertion condition must be boolean in entity '%s'",
                  e->name);
-        hasErrors = true;
+        ctx->hasErrors = true;
+        ok = false;
       }
     }
   }
@@ -75,12 +86,11 @@ TypeCheckStatus validateAllTypes(Program *program, SymbolTable *symbolTable) {
                      "Type mismatch in default value for relationship "
                      "attribute '%s'",
                      a->name);
-            hasErrors = true;
+            ctx->hasErrors = true;
+            ok = false;
           }
         }
       }
     }
   }
-
-  return hasErrors ? TYPECHECK_ERROR : TYPECHECK_OK;
 }

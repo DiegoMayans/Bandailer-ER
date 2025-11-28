@@ -141,19 +141,22 @@ static void writeAttributeNode(FILE *f, Entity *e, Attribute *attr) {
   // Check for derived modifier
   bool isDerived = hasModifier(attr->modifiers, MOD_DERIVED);
 
+  // Check if type is array
+  bool isArray = attr->type && attr->type->isArray;
+
   // Get type string
   const char *typeStr = "unknown";
   if (attr->type) {
     typeStr = typeToString(attr->type->kind);
   }
 
-  // Determine peripheries (double border for derived attributes)
-  int peripheries = isDerived ? 2 : 1;
+  const char *style = isDerived ? "dotted" : "solid";
+  int peripheries = isArray ? 2 : 1;
 
   fprintf(f,
-          "    attr_%s_%s [shape=ellipse, style=solid, peripheries=%d, "
+          "    attr_%s_%s [shape=ellipse, style=%s, peripheries=%d, "
           "fontname=\"Arial\", fontsize=10, label=<",
-          e->name, attr->name, peripheries);
+          e->name, attr->name, style, peripheries);
 
   if (isPk)
     fprintf(f, "<u>");
@@ -217,26 +220,30 @@ static void writeRelationshipAttributeNode(FILE *f, const char *relName,
   // Check for derived modifier
   bool isDerived = hasModifier(attr->modifiers, MOD_DERIVED);
 
+  // Check if type is array
+  bool isArray = attr->type && attr->type->isArray;
+
   // Get type string
   const char *typeStr = "unknown";
   if (attr->type) {
     typeStr = typeToString(attr->type->kind);
   }
 
-  // Determine peripheries (double border for derived attributes)
-  int peripheries = isDerived ? 2 : 1;
+  // Determine style and peripheries
+  // Derived attributes: dotted border
+  // Array attributes: double border
+  const char *style = isDerived ? "dotted" : "solid";
+  int peripheries = isArray ? 2 : 1;
 
   fprintf(f,
-          "    attr_rel_%s_%s [shape=ellipse, peripheries=%d, fontsize=9, "
+          "    attr_rel_%s_%s [shape=ellipse, style=%s, peripheries=%d, fontsize=9, "
           "label=\"%s : %s\"];\n",
-          relName, attr->name, peripheries, attr->name, typeStr);
+          relName, attr->name, style, peripheries, attr->name, typeStr);
   fprintf(f,
           "    %s_rel -> attr_rel_%s_%s [dir=none, style=dashed, "
           "color=\"gray40\"];\n",
           relName, relName, attr->name);
 }
-
-
 
 // Writes a relationship node and its connections in Chen notation.
 static void writeRelationship(FILE *f, Relationship *r, SymbolTable *symbolTable) {

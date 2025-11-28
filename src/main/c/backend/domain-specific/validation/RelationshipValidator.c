@@ -44,5 +44,9 @@ bool validateRelationships(ValidationContext *ctx) {
     ok &= validateSingleRelationship(ctx, rel);
   }
 
+  if (!ok) {
+    ctx->hasErrors = true;
+  }
+
   return ok;
 }

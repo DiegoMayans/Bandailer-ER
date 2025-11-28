@@ -54,5 +54,9 @@ bool validateEntities(ValidationContext *ctx) {
     ok &= validateSingleEntity(ctx, ent);
   }
 
+  if (!ok) {
+    ctx->hasErrors = true;
+  }
+
   return ok;
 }

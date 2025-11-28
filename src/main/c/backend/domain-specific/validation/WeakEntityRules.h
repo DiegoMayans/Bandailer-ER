@@ -5,11 +5,7 @@
 #include "../ValidationContext.h"
 #include <stdbool.h>
 
-/**
- * Validates that weak entities have identifying relationships.
- * For each entity referenced in the weak entity's primary key,
- * ensures a relationship exists between the weak entity and that entity.
- */
+// Validates that weak entities have identifying relationships.
 bool validateWeakEntityRelationships(ValidationContext *ctx, Entity *entity);
 
 #endif // WEAK_ENTITY_RULES_H
