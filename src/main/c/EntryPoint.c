@@ -44,7 +44,7 @@ const int main(const int length, const char **arguments) {
       logInformation(logger, "The computation phase completed successfully.");
 
       const char *dotFile = "output.dot";
-      generateGraphviz(program, dotFile);
+      generateGraphviz(program, (SymbolTable *)compilerState.symbolTable, dotFile);
 
       const char *imgFile = "output.png";
       bool imgGenStatus = generateImageFromDot(dotFile, imgFile, "png");

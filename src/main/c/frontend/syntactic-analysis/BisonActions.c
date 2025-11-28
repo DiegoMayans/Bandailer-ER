@@ -39,20 +39,7 @@ Program *SchemaProgramSemanticAction(Schema *schema) {
   _logSyntacticAnalyzerAction(__FUNCTION__);
   Program *program = calloc(1, sizeof(Program));
   program->schema = schema;
-  program->schema_last = schema;
   _compilerState->abstractSyntaxtTree = program;
-  return program;
-}
-
-Program *AppendSchemaProgramSemanticAction(Program *program, Schema *schema) {
-  _logSyntacticAnalyzerAction(__FUNCTION__);
-  if (program == NULL) {
-    return SchemaProgramSemanticAction(schema);
-  }
-
-  program->schema_last->next = schema;
-  program->schema_last = schema;
-
   return program;
 }
 

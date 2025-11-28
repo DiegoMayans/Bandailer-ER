@@ -139,7 +139,6 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 
 program:
       schema_decl                             { $$ = SchemaProgramSemanticAction($1); }
-    | program schema_decl                     { $$ = AppendSchemaProgramSemanticAction($1, $2); }
     ;
 
 schema_decl:

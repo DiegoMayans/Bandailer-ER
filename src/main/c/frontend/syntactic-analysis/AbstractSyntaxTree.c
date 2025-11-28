@@ -34,7 +34,6 @@ void destroySchema(Schema* schema) {
 		free(schema->name);
 		destroyEntity(schema->entities);
 		destroyRelationship(schema->relationships);
-		destroySchema(schema->next);
 		free(schema);
 	}
 }

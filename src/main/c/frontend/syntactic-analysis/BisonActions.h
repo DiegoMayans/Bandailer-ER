@@ -18,7 +18,6 @@ ModuleDestructor initializeBisonActionsModule(CompilerState * compilerState);
 
 /* Program and Schema actions */
 Program * SchemaProgramSemanticAction(Schema * schema);
-Program * AppendSchemaProgramSemanticAction(Program * program, Schema * schema);
 Schema * SchemaSemanticAction(char * identifier, Schema * body);
 Schema * EmptySchemaBodySemanticAction();
 Schema * AppendEntitySchemaBodySemanticAction(Schema * schema, Entity * entity);

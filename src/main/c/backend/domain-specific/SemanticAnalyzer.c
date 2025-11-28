@@ -53,9 +53,8 @@ ComputationStatus executeSemanticAnalysis(CompilerState *state) {
   ValidationContext ctx = {.compilerState = state,
                            .currentSchema = program->schema,
                            .currentEntity = NULL,
-                           .hasErrors = false,
-                           .errorCount = 0,
-                           .warningCount = 0};
+                           .hasErrors = false
+                          };
 
   bool ok = true;
 

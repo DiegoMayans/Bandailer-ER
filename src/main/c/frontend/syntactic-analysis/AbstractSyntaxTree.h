@@ -110,7 +110,6 @@ typedef enum ParticipationType {
  */
 struct Program {
   Schema *schema;
-  Schema *schema_last;
 };
 
 struct Schema {
@@ -119,7 +118,6 @@ struct Schema {
   Entity *entities_last;
   Relationship *relationships;
   Relationship *relationships_last;
-  Schema *next;
 };
 
 struct Entity {

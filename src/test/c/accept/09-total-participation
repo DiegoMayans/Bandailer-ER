@@ -1,0 +1,14 @@
+schema Building
+
+entity Building {
+    building_id : uuid primary
+    address : string not null
+}
+
+entity Apartment {
+    apt_number : integer primary
+    floor : integer not null
+    rooms : integer
+}
+
+relationship has_apartment(Building one, Apartment many total)

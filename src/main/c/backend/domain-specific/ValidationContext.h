@@ -13,8 +13,6 @@ typedef struct ValidationContext {
     Schema* currentSchema;
     Entity* currentEntity;
     bool hasErrors;
-    int errorCount;
-    int warningCount;
 } ValidationContext;
 
 #endif // VALIDATION_CONTEXT_H

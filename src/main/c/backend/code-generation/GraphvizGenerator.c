@@ -28,7 +28,7 @@ static void writeHeader(FILE *f, const char *schemaName);
 static void writeFooter(FILE *f);
 static void writeEntity(FILE *f, Entity *e);
 static void writeAttributeNode(FILE *f, Entity *e, Attribute *attr);
-static void writeRelationship(FILE *f, Relationship *r, Schema *schema);
+static void writeRelationship(FILE *f, Relationship *r, SymbolTable *symbolTable);
 static void writeRelationshipAttributeNode(FILE *f, const char *relName,
                                            Attribute *attr);
 static const char *typeToString(TypeKind kind);
@@ -36,7 +36,7 @@ static const char *cardinalityToString(CardinalityType cardinality);
 static char *expressionToString(Expression *expr);
 static bool hasModifier(ModifierList *modifiers, ModifierType type);
 static bool isAttributeInPrimaryKey(Entity *entity, const char *attrName);
-static Entity *lookupEntityInSchema(Schema *schema, const char *entityName);
+
 
 // Writes the DOT file header with graph configuration.
 static void writeHeader(FILE *f, const char *schemaName) {
@@ -236,21 +236,10 @@ static void writeRelationshipAttributeNode(FILE *f, const char *relName,
           relName, relName, attr->name);
 }
 
-// Helper to lookup an entity in the schema by name.
-static Entity *lookupEntityInSchema(Schema *schema, const char *entityName) {
-  if (!schema || !entityName)
-    return NULL;
 
-  for (Entity *e = schema->entities; e != NULL; e = e->next) {
-    if (e->name && strcmp(e->name, entityName) == 0) {
-      return e;
-    }
-  }
-  return NULL;
-}
 
 // Writes a relationship node and its connections in Chen notation.
-static void writeRelationship(FILE *f, Relationship *r, Schema *schema) {
+static void writeRelationship(FILE *f, Relationship *r, SymbolTable *symbolTable) {
   if (!r)
     return;
 
@@ -262,7 +251,7 @@ static void writeRelationship(FILE *f, Relationship *r, Schema *schema) {
       continue;
 
     // Check if entity is weak and has total participation
-    Entity *entity = lookupEntityInSchema(schema, p->entityName);
+    Entity *entity = lookupEntity(symbolTable, p->entityName);
     if (entity && entity->weak && p->participation &&
         p->participation->type == PARTICIPATION_TOTAL) {
       isIdentifyingRel = true;
@@ -307,8 +296,8 @@ static void writeRelationship(FILE *f, Relationship *r, Schema *schema) {
 
 /* PUBLIC FUNCTIONS */
 
-bool generateGraphviz(Program *program, const char *outputFilename) {
-  if (!program || !outputFilename) {
+bool generateGraphviz(Program *program, SymbolTable *symbolTable, const char *outputFilename) {
+  if (!program || !symbolTable || !outputFilename) {
     logError(_logger, "Invalid arguments to generateGraphviz");
     return false;
   }
@@ -321,9 +310,9 @@ bool generateGraphviz(Program *program, const char *outputFilename) {
     return false;
   }
 
-  Schema *headSchema = program->schema;
+  Schema *schema = program->schema;
 
-  if (!headSchema) {
+  if (!schema) {
     logWarning(_logger, "No schema found in program");
     writeHeader(f, "Empty");
     writeFooter(f);
@@ -331,50 +320,33 @@ bool generateGraphviz(Program *program, const char *outputFilename) {
     return true;
   }
 
-  writeHeader(f, "GlobalSystem");
+  logDebugging(_logger, "Processing schema: %s", schema->name);
 
-  Schema *currentSchema = headSchema;
-  int schemaIndex = 0;
+  writeHeader(f, schema->name);
 
-  while (currentSchema != NULL) {
-      logDebugging(_logger, "Processing schema: %s", currentSchema->name);
-
-      // use 'subgraph cluster_X' for multiple schema handling
-      fprintf(f, "\n    subgraph cluster_%d {\n", schemaIndex);
-      fprintf(f, "        style=filled;\n");
-      fprintf(f, "        color=white;\n");
-      fprintf(f, "        node [style=filled, fillcolor=white];\n");
-
-      // 1. Generate entity nodes
-      for (Entity *e = currentSchema->entities; e != NULL; e = e->next) {
-        writeEntity(f, e);
-      }
-
-      fprintf(f, "\n");
-
-      // 2. Generate relationship nodes and edges
-      for (Relationship *r = currentSchema->relationships; r != NULL; r = r->next) {
-        writeRelationship(f, r, currentSchema);
-      }
-
-      fprintf(f, "\n");
-
-      // 3. Generate inheritance edges
-      for (Entity *e = currentSchema->entities; e != NULL; e = e->next) {
-        if (e->parent) {
-          fprintf(f, "    %s -> %s [arrowhead=onormal, label=\"is-a\"];\n", e->name,
-                  e->parent);
-        }
-      }
-
-      fprintf(f, "    }\n"); // Cerramos el subgraph
-
-      // Avanzamos al siguiente esquema en la lista enlazada
-      currentSchema = currentSchema->next;
-      schemaIndex++;
+  // 1. Generate entity nodes
+  for (Entity *e = schema->entities; e != NULL; e = e->next) {
+    writeEntity(f, e);
   }
 
-  writeFooter(f); // Cerramos el digraph global
+  fprintf(f, "\n");
+
+  // 2. Generate relationship nodes and edges
+  for (Relationship *r = schema->relationships; r != NULL; r = r->next) {
+    writeRelationship(f, r, symbolTable);
+  }
+
+  fprintf(f, "\n");
+
+  // 3. Generate inheritance edges
+  for (Entity *e = schema->entities; e != NULL; e = e->next) {
+    if (e->parent) {
+      fprintf(f, "    %s -> %s [arrowhead=onormal, label=\"is-a\"];\n", e->name,
+              e->parent);
+    }
+  }
+
+  writeFooter(f);
   fclose(f);
 
   logInformation(_logger, "Successfully generated Graphviz DOT file: %s",
