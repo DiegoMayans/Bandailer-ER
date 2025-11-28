@@ -38,6 +38,48 @@ Rises an ephemeral container, ready to start development:
 docker compose run --rm compiler
 ```
 
+### Graphviz PNG Generation
+
+The compiler uses graphviz to generate PNG files from DOT representations.
+If graphviz is not installed, the compiler will still work, but only DOT files will be generated, not PNG images.
+
+#### Installing Graphviz on your host system
+
+```bash
+sudo apt-get install graphviz
+```
+
+#### Installing Graphviz inside the Docker development container
+
+By default, the development container runs as the non-privileged user ubuntu, and therefore cannot install system packages.
+
+You have two options:
+
+1. Rebuild the image with Graphviz included
+
+```bash
+docker compose build --no-cache
+```
+
+This installs Graphviz permanently into the container image.
+
+2. Install Graphviz temporarily inside a container (without rebuilding the image)
+
+Run the container as root:
+
+```bash
+docker compose run --rm --user root compiler
+```
+
+Then install Graphviz:
+
+```bash
+apt update && apt install -y graphviz
+```
+
+This installs Graphviz only inside that ephemeral container.
+Once you exit the container, it will be removed (because of --rm), and Graphviz will no longer be present the next time you run it.
+
 ### Build
 
 Builds or rebuilds the entire compiler:
